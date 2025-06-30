@@ -3,9 +3,13 @@
   "theme": "willow",
   "name": "LocalCloud",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373"
+    "primary": "#0066FF",
+    "light": "#3B82F6",
+    "dark": "#1E40AF",
+    "background": {
+      "light": "#FFFFFF",
+      "dark": "#0F172A"
+    }
   },
   "favicon": "/favicon.svg",
   "navigation": {
@@ -16,7 +20,7 @@
           {
             "group": "Getting Started",
             "pages": [
-              "getting-started/introduction",
+              "index",
               "getting-started/installation",
               "getting-started/quickstart"
             ]
