@@ -2,29 +2,12 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "willow",
   "name": "LocalCloud",
-  "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
-  },
-  "favicon": "/favicon.svg",
   "colors": {
     "primary": "#0D9373",
     "light": "#07C983",
     "dark": "#0D9373"
   },
-  "navbar": {
-    "links": [
-      {
-        "label": "GitHub",
-        "href": "https://github.com/localcloud/localcloud"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Get Started",
-      "href": "https://github.com/localcloud/localcloud"
-    }
-  },
+  "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
@@ -124,7 +107,7 @@
         "tab": "Examples",
         "groups": [
           {
-            "group": "Examples",
+            "group": "Templates",
             "pages": [
               "examples/ai-chat",
               "examples/database",
@@ -138,7 +121,7 @@
       "anchors": [
         {
           "anchor": "Documentation",
-          "href": "getting-started/introduction",
+          "href": "https://docs.localcloud.ai",
           "icon": "book-open-cover"
         },
         {
@@ -152,6 +135,23 @@
           "icon": "github"
         }
       ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/localcloud/localcloud"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get Started",
+      "href": "https://github.com/localcloud/localcloud"
     }
   },
   "footer": {
