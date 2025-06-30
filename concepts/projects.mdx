@@ -1,0 +1,459 @@
+---
+title: 'Projects'
+description: 'Understanding LocalCloud project structure and configuration'
+icon: 'folder'
+---
+
+# Projects
+
+A LocalCloud project is a self-contained development environment with its own configuration, services, and data. Each project is independent and can have different services and settings.
+
+## Project Structure
+
+When you initialize a LocalCloud project, it creates the following structure:
+
+```
+my-project/
+├── .localcloud/
+│   ├── config.yaml           # Project configuration
+│   ├── logs/                 # Service logs (created on start)
+│   │   ├── ollama.log
+│   │   ├── postgres.log
+│   │   ├── redis.log
+│   │   └── minio.log
+│   └── storage-credentials.json  # MinIO credentials (auto-generated)
+├── .gitignore               # Git ignore rules
+└── [your application files]
+```
+
+<Note>
+    The `.localcloud` directory contains all LocalCloud-specific files. Your application code lives alongside it.
+</Note>
+
+## Configuration File
+
+The heart of a LocalCloud project is the `config.yaml` file:
+
+```yaml
+# .localcloud/config.yaml
+project:
+  name: my-ai-app
+  type: custom
+  version: 1.0.0
+
+services:
+  ai:
+    type: ollama
+    port: 11434
+    models:
+      - llama2
+      - mistral
+
+  database:
+    type: postgres
+    version: "16"
+    port: 5432
+    name: localcloud
+    user: localcloud
+    password: auto-generated-password
+    extensions:
+      - pgvector
+      - pg_trgm
+
+  cache:
+    type: redis
+    version: "7"
+    port: 6379
+
+  queue:
+    type: redis  # Shares instance with cache
+    port: 6379
+
+  storage:
+    type: minio
+    port: 9000
+    console: 9001
+
+resources:
+  memory_limit: "4Gi"
+  cpu_limit: "2"
+
+components:
+  - llm
+  - embedding
+  - database
+  - cache
+  - storage
+
+connectivity:
+  tunnel:
+    enabled: false
+    provider: ngrok
+```
+
+## Project Types
+
+LocalCloud supports different project types with optimized defaults:
+
+<Tabs>
+    <Tab title="Custom">
+        **Default type** - You choose exactly what services to include
+        ```yaml
+        project:
+        type: custom
+        ```
+        Best for: Specific requirements, minimal setups
+    </Tab>
+
+    <Tab title="Chat">
+        Optimized for chat applications
+        ```yaml
+        project:
+        type: chat
+        components:
+        - llm
+        - database
+        - cache
+        ```
+        Includes: AI model, PostgreSQL, Redis
+    </Tab>
+
+    <Tab title="RAG">
+        Retrieval Augmented Generation setup
+        ```yaml
+        project:
+        type: rag
+        components:
+        - llm
+        - embedding
+        - database
+        - storage
+        ```
+        Includes: AI models, vector DB, storage
+    </Tab>
+
+    <Tab title="API">
+        API-only configuration
+        ```yaml
+        project:
+        type: api
+        components:
+        - llm
+        - database
+        - cache
+        ```
+        Optimized for: REST APIs, microservices
+    </Tab>
+</Tabs>
+
+## Project Lifecycle
+
+### 1. Initialization
+
+```bash
+lc init my-project
+```
+
+Creates project structure and default configuration.
+
+### 2. Setup
+
+```bash
+lc setup
+```
+
+Interactive wizard to:
+- Select project type
+- Choose components
+- Pick AI models
+- Configure services
+
+### 3. Development
+
+```bash
+lc start  # Start services
+lc status # Check status
+lc logs   # View logs
+lc stop   # Stop services
+```
+
+### 4. Reset/Cleanup
+
+```bash
+lc reset        # Soft reset (keep data)
+lc reset --hard # Remove everything
+```
+
+## Component System
+
+Components are logical groupings of functionality:
+
+<AccordionGroup>
+    <Accordion title="LLM Component" icon="robot">
+        Language model for text generation
+        - **Service**: Ollama
+        - **Models**: Llama, Mistral, etc.
+        - **Use**: Chat, completion, reasoning
+    </Accordion>
+
+    <Accordion title="Embedding Component" icon="vector-square">
+        Convert text to vectors
+        - **Service**: Ollama
+        - **Models**: nomic-embed-text, mxbai-embed-large
+        - **Use**: Semantic search, RAG
+    </Accordion>
+
+    <Accordion title="Database Component" icon="database">
+        Persistent data storage
+        - **Service**: PostgreSQL
+        - **Extensions**: pgvector for embeddings
+        - **Use**: Application data, vector storage
+    </Accordion>
+
+    <Accordion title="Cache Component" icon="bolt">
+        High-speed data access
+        - **Service**: Redis
+        - **Features**: Caching, pub/sub
+        - **Use**: Session storage, queues
+    </Accordion>
+
+    <Accordion title="Storage Component" icon="box">
+        File and object storage
+        - **Service**: MinIO
+        - **Protocol**: S3-compatible
+        - **Use**: Documents, images, backups
+    </Accordion>
+</AccordionGroup>
+
+## Port Management
+
+LocalCloud automatically manages ports to avoid conflicts:
+
+### Default Ports
+- **Ollama**: 11434
+- **PostgreSQL**: 5432
+- **Redis**: 6379
+- **MinIO API**: 9000
+- **MinIO Console**: 9001
+
+### Port Allocation
+If default ports are in use, LocalCloud will:
+1. Detect the conflict
+2. Find an available port
+3. Update configuration
+4. Show the new port in `lc status`
+
+<Info>
+    You can manually set ports in `config.yaml` if needed.
+</Info>
+
+## Data Management
+
+### Data Persistence
+
+Project data is stored in Docker volumes:
+
+```bash
+# List volumes for current project
+docker volume ls | grep localcloud
+
+# Example output:
+localcloud_my-ai-app_postgres_data
+localcloud_my-ai-app_redis_data
+localcloud_my-ai-app_ollama_models
+localcloud_my-ai-app_minio_data
+```
+
+### Backup and Restore
+
+<CodeGroup>
+    ```bash Backup
+    # Backup PostgreSQL
+    docker exec localcloud-postgres pg_dump -U localcloud localcloud > backup.sql
+
+    # Backup MinIO data
+    docker run --rm \
+    -v localcloud_minio_data:/data \
+    -v $(pwd):/backup \
+    alpine tar czf /backup/minio-backup.tar.gz /data
+    ```
+
+    ```bash Restore
+    # Restore PostgreSQL
+    docker exec -i localcloud-postgres psql -U localcloud localcloud < backup.sql
+
+    # Restore MinIO data
+    docker run --rm \
+    -v localcloud_minio_data:/data \
+    -v $(pwd):/backup \
+    alpine tar xzf /backup/minio-backup.tar.gz -C /
+    ```
+</CodeGroup>
+
+## Multiple Projects
+
+You can have multiple LocalCloud projects:
+
+```bash
+# Project 1
+cd ~/projects/chat-app
+lc init
+lc start
+
+# Project 2 (different directory)
+cd ~/projects/rag-system
+lc init
+lc start --project .
+```
+
+<Warning>
+    Services from different projects may conflict if using the same ports. LocalCloud will detect and handle this automatically.
+</Warning>
+
+## Environment Variables
+
+LocalCloud sets environment variables for service discovery:
+
+```bash
+# Automatically set when services start
+LOCALCLOUD_AI_URL=http://localhost:11434
+LOCALCLOUD_DB_URL=postgresql://localcloud:localcloud@localhost:5432/localcloud
+LOCALCLOUD_REDIS_URL=redis://localhost:6379
+LOCALCLOUD_MINIO_URL=http://localhost:9000
+```
+
+Use in your application:
+
+<CodeGroup>
+    ```python Python
+    import os
+
+    ai_url = os.getenv('LOCALCLOUD_AI_URL', 'http://localhost:11434')
+    db_url = os.getenv('LOCALCLOUD_DB_URL')
+    ```
+
+    ```javascript Node.js
+    const aiUrl = process.env.LOCALCLOUD_AI_URL || 'http://localhost:11434';
+    const dbUrl = process.env.LOCALCLOUD_DB_URL;
+    ```
+</CodeGroup>
+
+## Project Templates
+
+Create projects from templates:
+
+```bash
+# Interactive template selection
+lc setup chat
+
+# With options
+lc setup api --name my-api --port 8080
+```
+
+Templates include:
+- Pre-configured services
+- Example code
+- Best practices
+- Documentation
+
+## Version Control
+
+### Recommended .gitignore
+
+```gitignore
+# LocalCloud
+.localcloud/data/
+.localcloud/logs/
+.localcloud/tunnels/
+.localcloud/storage-credentials.json
+
+# Keep config
+!.localcloud/config.yaml
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+```
+
+### Sharing Projects
+
+To share a LocalCloud project:
+
+1. Commit `.localcloud/config.yaml`
+2. Document required models in README
+3. Other developers run:
+```bash
+git clone <project>
+cd <project>
+lc start  # Auto-downloads everything
+   ```
+
+## Troubleshooting
+
+<AccordionGroup>
+    <Accordion title="Project already initialized">
+        If you see "project already initialized":
+        - Check for existing `.localcloud` directory
+        - Use `lc reset --hard` to start fresh
+        - Or `cd` to the existing project
+    </Accordion>
+
+    <Accordion title="Configuration not found">
+        If LocalCloud can't find config:
+        - Ensure you're in project root
+        - Check `.localcloud/config.yaml` exists
+        - Run `lc init` if needed
+    </Accordion>
+
+    <Accordion title="Port conflicts">
+        If services fail to start:
+        - Check `lc status` for port info
+        - Update ports in `config.yaml`
+        - Or stop conflicting services
+    </Accordion>
+</AccordionGroup>
+
+## Best Practices
+
+1. **One project per application** - Keep projects isolated
+2. **Commit config.yaml** - Share configuration with team
+3. **Use components** - Logical grouping over individual services
+4. **Document models** - List required AI models in README
+5. **Regular backups** - Backup data before major changes
+
+## Next Steps
+
+<CardGroup cols={2}>
+    <Card
+        title="Configuration"
+        icon="cog"
+        href="/configuration/config-yaml"
+    >
+        Deep dive into configuration
+    </Card>
+    <Card
+        title="CLI Commands"
+        icon="terminal"
+        href="/cli/overview"
+    >
+        Master project management
+    </Card>
+    <Card
+        title="Services"
+        icon="server"
+        href="/concepts/services"
+    >
+        Understand available services
+    </Card>
+    <Card
+        title="Quick Start"
+        icon="rocket"
+        href="/getting-started/quickstart"
+    >
+        Create your first project
+    </Card>
+</CardGroup>

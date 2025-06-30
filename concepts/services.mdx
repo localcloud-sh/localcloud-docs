@@ -1,0 +1,437 @@
+---
+title: 'Services'
+description: 'Understanding LocalCloud services and how they work together'
+icon: 'server'
+---
+
+# Services
+
+LocalCloud provides a suite of integrated services that work together to create a complete local development environment. Each service runs in its own Docker container and is managed by the LocalCloud CLI.
+
+## Available Services
+
+<CardGroup cols={2}>
+    <Card title="AI Service (Ollama)" icon="robot" color="#8b5cf6">
+        Run language models locally with OpenAI-compatible API
+    </Card>
+    <Card title="PostgreSQL" icon="database" color="#3b82f6">
+        Full-featured relational database with vector extensions
+    </Card>
+    <Card title="Redis" icon="bolt" color="#ef4444">
+        High-performance caching and message queuing
+    </Card>
+    <Card title="MinIO" icon="box" color="#10b981">
+        S3-compatible object storage for files and media
+    </Card>
+</CardGroup>
+
+## Service Architecture
+
+```mermaid
+graph TB
+    subgraph "Your Application"
+        A[Application Code]
+    end
+
+    subgraph "LocalCloud Services"
+        B[Ollama<br/>Port: 11434]
+        C[PostgreSQL<br/>Port: 5432]
+        D[Redis<br/>Port: 6379]
+        E[MinIO<br/>Port: 9000/9001]
+    end
+
+    subgraph "Docker Engine"
+        F[Container Management]
+        G[Network: localcloud_default]
+        H[Volumes: Data Persistence]
+    end
+
+    A --> B
+    A --> C
+    A --> D
+    A --> E
+
+    B --> F
+    C --> F
+    D --> F
+    E --> F
+
+    F --> G
+    F --> H
+
+    style A fill:#10b981,color:#fff
+    style B fill:#8b5cf6,color:#fff
+    style C fill:#3b82f6,color:#fff
+    style D fill:#ef4444,color:#fff
+    style E fill:#10b981,color:#fff
+```
+
+## AI Service (Ollama)
+
+Ollama enables you to run large language models locally with excellent performance.
+
+### Features
+- **OpenAI API Compatibility**: Drop-in replacement for OpenAI API
+- **Multiple Models**: Support for Llama, Mistral, Qwen, and more
+- **GPU Acceleration**: Automatic GPU detection and utilization
+- **Model Management**: Easy model downloading and switching
+
+### Default Configuration
+```yaml
+ai:
+  type: ollama
+  port: 11434
+  models: []  # Models are pulled on demand
+```
+
+### Supported Models
+
+<Tabs>
+    <Tab title="General Purpose">
+        - `llama2` - Meta's Llama 2 (7B)
+        - `llama3` - Meta's Llama 3 (8B)
+        - `mistral` - Mistral AI's model (7B)
+        - `mixtral` - Mistral's MoE model (8x7B)
+        - `qwen2.5` - Alibaba's Qwen models
+    </Tab>
+    <Tab title="Code Models">
+        - `codellama` - Meta's code-focused model
+        - `deepseek-coder` - Code generation specialist
+        - `codegemma` - Google's code model
+        - `starcoder2` - BigCode's coding model
+    </Tab>
+    <Tab title="Small Models">
+        - `phi3` - Microsoft's efficient model (3.8B)
+        - `gemma2:2b` - Google's tiny model
+        - `qwen2.5:3b` - Efficient Chinese/English model
+        - `tinyllama` - Compact model (1.1B)
+    </Tab>
+</Tabs>
+
+### API Endpoints
+- **Generate**: `POST http://localhost:11434/api/generate`
+- **Chat**: `POST http://localhost:11434/api/chat`
+- **Models**: `GET http://localhost:11434/api/tags`
+- **Embeddings**: `POST http://localhost:11434/api/embeddings`
+
+## PostgreSQL Database
+
+Enterprise-grade relational database with powerful extensions for AI applications.
+
+### Features
+- **Version 16**: Latest stable PostgreSQL
+- **Vector Storage**: pgvector extension for embeddings
+- **Full-Text Search**: Built-in FTS capabilities
+- **JSON Support**: Native JSONB data type
+- **Extensions**: pgvector, pg_trgm, and more
+
+### Default Configuration
+```yaml
+database:
+  type: postgres
+  version: "16"
+  port: 5432
+  name: localcloud
+  user: localcloud
+  password: localcloud  # Auto-generated in production
+  extensions:
+    - pgvector
+    - pg_trgm
+```
+
+### Connection Details
+<CodeGroup>
+    ```bash Connection String
+    postgresql://localcloud:localcloud@localhost:5432/localcloud
+    ```
+
+    ```python Python
+    import psycopg2
+
+    conn = psycopg2.connect(
+    host="localhost",
+    port=5432,
+    database="localcloud",
+    user="localcloud",
+    password="localcloud"
+    )
+    ```
+
+    ```javascript Node.js
+    const { Client } = require('pg');
+
+    const client = new Client({
+    host: 'localhost',
+    port: 5432,
+    database: 'localcloud',
+    user: 'localcloud',
+    password: 'localcloud'
+});
+    ```
+</CodeGroup>
+
+### Common Extensions
+- **pgvector**: Store and query vector embeddings
+- **pg_trgm**: Trigram-based text similarity
+- **uuid-ossp**: UUID generation
+- **hstore**: Key-value storage
+
+## Redis Cache
+
+High-performance in-memory data store for caching and messaging.
+
+### Features
+- **Caching**: Sub-millisecond response times
+- **Pub/Sub**: Real-time messaging
+- **Queues**: Job and task queuing
+- **Data Structures**: Lists, sets, sorted sets, streams
+
+### Default Configuration
+```yaml
+cache:
+  type: redis
+  version: "7"
+  port: 6379
+
+queue:
+  type: redis  # Shares same instance
+  port: 6379
+```
+
+### Use Cases
+
+<AccordionGroup>
+    <Accordion title="Response Caching" icon="gauge">
+        Cache AI model responses to improve performance:
+        ```python
+        # Cache AI response
+        redis_client.setex(
+        f"ai:response:{prompt_hash}",
+        3600,  # 1 hour TTL
+        ai_response
+        )
+        ```
+    </Accordion>
+
+    <Accordion title="Session Storage" icon="user">
+        Store user sessions and temporary data:
+        ```python
+        # Store session
+        redis_client.hset(
+        f"session:{session_id}",
+        mapping={
+        "user_id": user_id,
+        "created": timestamp
+    }
+        )
+        ```
+    </Accordion>
+
+    <Accordion title="Job Queues" icon="list">
+        Implement background job processing:
+        ```python
+        # Add job to queue
+        redis_client.lpush("jobs:process", json.dumps({
+        "id": job_id,
+        "type": "generate",
+        "data": payload
+    }))
+
+        # Worker processes jobs
+        job = redis_client.brpop("jobs:process", timeout=5)
+        ```
+    </Accordion>
+
+    <Accordion title="Real-time Updates" icon="bolt">
+        Pub/Sub for live updates:
+        ```python
+        # Publish update
+        redis_client.publish("updates:chat", json.dumps({
+        "user": user_id,
+        "message": message
+    }))
+        ```
+    </Accordion>
+</AccordionGroup>
+
+## MinIO Storage
+
+S3-compatible object storage for files, images, and documents.
+
+### Features
+- **S3 Compatible**: Works with existing S3 SDKs
+- **Web Console**: Visual file management
+- **Buckets**: Organize files logically
+- **Versioning**: Track file changes
+
+### Default Configuration
+```yaml
+storage:
+  type: minio
+  port: 9000      # API port
+  console: 9001   # Web UI port
+  access_key: minioadmin
+  secret_key: minioadmin  # Change in production
+```
+
+### Access Points
+- **API Endpoint**: `http://localhost:9000`
+- **Web Console**: `http://localhost:9001`
+- **Default Credentials**:
+- Access Key: `minioadmin`
+- Secret Key: `minioadmin`
+
+### SDK Examples
+
+<CodeGroup>
+    ```python Python (boto3)
+    import boto3
+
+    s3 = boto3.client('s3',
+    endpoint_url='http://localhost:9000',
+    aws_access_key_id='minioadmin',
+    aws_secret_access_key='minioadmin'
+    )
+
+    # Create bucket
+    s3.create_bucket(Bucket='uploads')
+
+    # Upload file
+    s3.upload_file('document.pdf', 'uploads', 'document.pdf')
+    ```
+
+    ```javascript Node.js (AWS SDK)
+    const AWS = require('aws-sdk');
+
+    const s3 = new AWS.S3({
+    endpoint: 'http://localhost:9000',
+    accessKeyId: 'minioadmin',
+    secretAccessKey: 'minioadmin',
+    s3ForcePathStyle: true
+});
+
+    // Create bucket
+    await s3.createBucket({ Bucket: 'uploads' }).promise();
+
+    // Upload file
+    await s3.upload({
+    Bucket: 'uploads',
+    Key: 'document.pdf',
+    Body: fileBuffer
+}).promise();
+    ```
+</CodeGroup>
+
+## Service Lifecycle
+
+### Starting Services
+
+Services are started in dependency order:
+
+1. **Network Creation**: Docker network for inter-service communication
+2. **Database**: PostgreSQL starts first
+3. **Cache**: Redis starts next
+4. **Storage**: MinIO initializes
+5. **AI**: Ollama starts last (may download models)
+
+```bash
+# Start all services
+lc start
+
+# Start specific service
+lc start postgres
+```
+
+### Health Checks
+
+Each service includes health checks:
+
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:11434/"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+```
+
+### Data Persistence
+
+All service data is persisted in Docker volumes:
+
+- **Ollama Models**: `localcloud_ollama_models`
+- **PostgreSQL Data**: `localcloud_postgres_data`
+- **Redis Data**: `localcloud_redis_data`
+- **MinIO Data**: `localcloud_minio_data`
+
+<Warning>
+    Data persists across `lc stop/start` cycles. Use `lc reset --hard` to remove all data.
+</Warning>
+
+## Service Communication
+
+Services communicate over the Docker network:
+
+- **Internal DNS**: Services can reference each other by name
+- **Port Mapping**: Services are exposed to localhost
+- **Network Isolation**: Services are isolated from external networks
+
+Example internal communication:
+```python
+# From within a container, services can use internal names
+postgres_url = "postgresql://localcloud:localcloud@postgres:5432/localcloud"
+redis_url = "redis://redis:6379"
+minio_url = "http://minio:9000"
+```
+
+## Resource Management
+
+LocalCloud automatically manages resources:
+
+### Memory Limits
+```yaml
+resources:
+  memory_limit: "4Gi"  # Per service
+  cpu_limit: "2"       # CPU cores
+```
+
+### Monitoring
+```bash
+# Check resource usage
+lc info
+
+# View detailed stats
+docker stats
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+    <Card
+        title="Service Configuration"
+        icon="cog"
+        href="/configuration/config-yaml"
+    >
+        Customize service settings
+    </Card>
+    <Card
+        title="Using Ollama"
+        icon="robot"
+        href="/services/ollama"
+    >
+        Learn about AI models
+    </Card>
+    <Card
+        title="Start Command"
+        icon="play"
+        href="/cli/start"
+    >
+        Service management commands
+    </Card>
+    <Card
+        title="Examples"
+        icon="code"
+        href="/examples/ai-chat"
+    >
+        See services in action
+    </Card>
+</CardGroup>

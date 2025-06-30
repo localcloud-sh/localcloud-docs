@@ -1,0 +1,400 @@
+---
+title: 'Quick Start'
+description: 'Create your first LocalCloud project in 5 minutes'
+icon: 'rocket'
+---
+
+# Quick Start
+
+Get your first LocalCloud project running in 5 minutes. We'll create a simple AI chat application that runs entirely on your local machine.
+
+<Info>
+    Make sure you've [installed LocalCloud](/getting-started/installation) before starting this guide.
+</Info>
+
+## Create Your First Project
+
+<Steps>
+    <Step title="Initialize the project">
+        ```bash
+        # Create a new directory and initialize
+        mkdir my-ai-app
+        cd my-ai-app
+        lc init
+        ```
+
+        This creates a `.localcloud` directory with your project configuration.
+    </Step>
+
+    <Step title="Configure services">
+        ```bash
+        # Run interactive setup
+        lc setup
+        ```
+
+        Select the services you want:
+        - **AI Model**: Choose a model (e.g., `llama2`, `mistral`, `qwen2.5`)
+        - **Database**: PostgreSQL for data storage
+        - **Cache**: Redis for performance
+        - **Storage**: MinIO for file storage
+    </Step>
+
+    <Step title="Start services">
+        ```bash
+        # Start all configured services
+        lc start
+        ```
+
+        LocalCloud will:
+        - Download required Docker images
+        - Start all services
+        - Configure networking
+        - Show connection details
+    </Step>
+</Steps>
+
+## Verify Everything is Running
+
+Check the status of your services:
+
+```bash
+lc status
+```
+
+You should see output like:
+
+```
+LocalCloud Status
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Project: my-ai-app
+Status: Running
+
+Services:
+✓ AI (Ollama)       http://localhost:11434    [Running]
+✓ Database          localhost:5432            [Running]
+✓ Cache             localhost:6379            [Running]
+✓ Storage           http://localhost:9000     [Running]
+```
+
+## Test the AI Service
+
+Let's test that the AI model is working:
+
+<CodeGroup>
+    ```bash cURL
+    curl http://localhost:11434/api/generate -d '{
+    "model": "llama2",
+    "prompt": "Hello! What is LocalCloud?",
+    "stream": false
+}'
+    ```
+
+    ```python Python
+    import requests
+
+    response = requests.post('http://localhost:11434/api/generate',
+    json={
+    'model': 'llama2',
+    'prompt': 'Hello! What is LocalCloud?',
+    'stream': False
+}
+    )
+
+    print(response.json()['response'])
+    ```
+
+    ```javascript Node.js
+    const response = await fetch('http://localhost:11434/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+    model: 'llama2',
+    prompt: 'Hello! What is LocalCloud?',
+    stream: false
+})
+});
+
+    const data = await response.json();
+    console.log(data.response);
+    ```
+</CodeGroup>
+
+## Connect to Services
+
+Each service is now accessible locally:
+
+### AI Model (Ollama)
+- **API**: `http://localhost:11434`
+- **Models endpoint**: `http://localhost:11434/api/tags`
+- **Compatible with OpenAI API format**
+
+### PostgreSQL Database
+- **Host**: `localhost`
+- **Port**: `5432`
+- **Username**: `localcloud`
+- **Password**: `localcloud`
+- **Database**: `localcloud`
+
+Connection string:
+```
+postgresql://localcloud:localcloud@localhost:5432/localcloud
+```
+
+### Redis Cache
+- **Host**: `localhost`
+- **Port**: `6379`
+- **No authentication by default**
+
+### MinIO Storage
+- **API**: `http://localhost:9000`
+- **Console**: `http://localhost:9001`
+- **Access Key**: `minioadmin`
+- **Secret Key**: `minioadmin`
+
+## Build a Simple Chat Application
+
+Let's create a basic chat application using the services:
+
+<Tabs>
+    <Tab title="Python">
+        Create `app.py`:
+
+        ```python
+        import requests
+        from flask import Flask, request, jsonify
+        import redis
+        import psycopg2
+
+        app = Flask(__name__)
+
+        # Connect to services
+        redis_client = redis.Redis(host='localhost', port=6379)
+        db = psycopg2.connect(
+        "postgresql://localcloud:localcloud@localhost:5432/localcloud"
+        )
+
+        @app.route('/chat', methods=['POST'])
+        def chat():
+        message = request.json['message']
+
+        # Check cache first
+        cached = redis_client.get(f"response:{message}")
+        if cached:
+        return jsonify({'response': cached.decode()})
+
+        # Call AI model
+        response = requests.post('http://localhost:11434/api/generate',
+        json={
+        'model': 'llama2',
+        'prompt': message,
+        'stream': False
+    }
+        )
+
+        ai_response = response.json()['response']
+
+        # Cache the response
+        redis_client.setex(f"response:{message}", 3600, ai_response)
+
+        # Store in database
+        with db.cursor() as cur:
+        cur.execute(
+        "INSERT INTO chats (message, response) VALUES (%s, %s)",
+        (message, ai_response)
+        )
+        db.commit()
+
+        return jsonify({'response': ai_response})
+
+        if __name__ == '__main__':
+        # Create table if not exists
+        with db.cursor() as cur:
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS chats (
+        id SERIAL PRIMARY KEY,
+        message TEXT,
+        response TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+        db.commit()
+
+        app.run(port=5000)
+        ```
+
+        Run the app:
+        ```bash
+        pip install flask requests redis psycopg2-binary
+        python app.py
+        ```
+    </Tab>
+
+    <Tab title="Node.js">
+        Create `app.js`:
+
+        ```javascript
+        const express = require('express');
+        const { Client } = require('pg');
+        const redis = require('redis');
+        const axios = require('axios');
+
+        const app = express();
+        app.use(express.json());
+
+        // Connect to services
+        const redisClient = redis.createClient({ url: 'redis://localhost:6379' });
+        const pgClient = new Client({
+        connectionString: 'postgresql://localcloud:localcloud@localhost:5432/localcloud'
+    });
+
+        async function init() {
+        await redisClient.connect();
+        await pgClient.connect();
+
+        // Create table
+        await pgClient.query(`
+        CREATE TABLE IF NOT EXISTS chats (
+          id SERIAL PRIMARY KEY,
+          message TEXT,
+          response TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+    }
+
+        app.post('/chat', async (req, res) => {
+        const { message } = req.body;
+
+        // Check cache
+        const cached = await redisClient.get(`response:${message}`);
+        if (cached) {
+        return res.json({ response: cached });
+    }
+
+        // Call AI model
+        const response = await axios.post('http://localhost:11434/api/generate', {
+        model: 'llama2',
+        prompt: message,
+        stream: false
+    });
+
+        const aiResponse = response.data.response;
+
+        // Cache response
+        await redisClient.setEx(`response:${message}`, 3600, aiResponse);
+
+        // Store in database
+        await pgClient.query(
+        'INSERT INTO chats (message, response) VALUES ($1, $2)',
+        [message, aiResponse]
+        );
+
+        res.json({ response: aiResponse });
+    });
+
+        init().then(() => {
+        app.listen(5000, () => {
+            console.log('Chat app running on http://localhost:5000');
+        });
+    });
+        ```
+
+        Run the app:
+        ```bash
+        npm init -y
+        npm install express pg redis axios
+        node app.js
+        ```
+    </Tab>
+</Tabs>
+
+Test your chat application:
+
+```bash
+curl -X POST http://localhost:5000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is the capital of France?"}'
+```
+
+## Managing Your Project
+
+### View logs
+```bash
+# All services
+lc logs
+
+# Specific service
+lc logs ai
+```
+
+### Stop services
+```bash
+# Stop all services
+lc stop
+
+# Stop specific service
+lc stop postgres
+```
+
+### Add more models
+```bash
+# List available models
+lc models list
+
+# Pull a new model
+lc models pull mistral
+```
+
+### Check resource usage
+```bash
+lc info
+```
+
+## What's Next?
+
+Congratulations! You now have a fully functional local AI development environment. Here's what you can explore next:
+
+<CardGroup cols={2}>
+    <Card
+        title="CLI Commands"
+        icon="terminal"
+        href="/cli/overview"
+    >
+        Master all LocalCloud commands
+    </Card>
+    <Card
+        title="Service Configuration"
+        icon="cog"
+        href="/configuration/config-yaml"
+    >
+        Customize your services
+    </Card>
+    <Card
+        title="AI Models"
+        icon="robot"
+        href="/cli/models"
+    >
+        Explore available AI models
+    </Card>
+    <Card
+        title="Examples"
+        icon="code"
+        href="/examples/ai-chat"
+    >
+        See more example applications
+    </Card>
+</CardGroup>
+
+## Tips
+
+<Tip>
+    **Model Performance**: Smaller models like `qwen2.5:3b` or `phi3` run faster on modest hardware. Start with these if you have limited resources.
+</Tip>
+
+<Warning>
+    **First Start**: The initial `lc start` may take several minutes as Docker images are downloaded. Subsequent starts will be much faster.
+</Warning>
+
+<Info>
+    **Data Persistence**: All your data is stored in Docker volumes. Use `lc reset --hard` only if you want to completely remove all data.
+</Info>

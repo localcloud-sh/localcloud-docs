@@ -1,0 +1,326 @@
+---
+title: 'Installation'
+description: 'Install LocalCloud on macOS, Linux, or Windows'
+icon: 'download'
+---
+
+# Installation
+
+LocalCloud can be installed on macOS, Linux, and Windows (via WSL2). The installation process takes less than 2 minutes.
+
+## Prerequisites
+
+<Info>
+    LocalCloud requires Docker to manage services. We'll help you install it if needed.
+</Info>
+
+### System Requirements
+
+<Tabs>
+    <Tab title="macOS">
+        - macOS 12 (Monterey) or later
+        - 8GB RAM minimum (16GB recommended)
+        - 20GB free disk space
+        - Docker Desktop or OrbStack
+    </Tab>
+    <Tab title="Linux">
+        - Ubuntu 20.04+, Debian 11+, Fedora 35+
+        - 8GB RAM minimum (16GB recommended)
+        - 20GB free disk space
+        - Docker Engine
+    </Tab>
+    <Tab title="Windows">
+        - Windows 10/11 with WSL2
+        - 8GB RAM minimum (16GB recommended)
+        - 20GB free disk space
+        - Docker Desktop for Windows
+    </Tab>
+</Tabs>
+
+## Quick Install
+
+The fastest way to install LocalCloud:
+
+```bash
+curl -fsSL https://get.localcloud.dev | bash
+```
+
+This script will:
+1. Detect your operating system
+2. Download the appropriate binary
+3. Install it to `/usr/local/bin`
+4. Create the `lc` alias
+5. Verify the installation
+
+<Note>
+    The installer requires `sudo` access to install to `/usr/local/bin`. You'll be prompted for your password.
+</Note>
+
+## Manual Installation
+
+### macOS
+
+<Tabs>
+    <Tab title="Homebrew">
+        ```bash
+        # Add LocalCloud tap
+        brew tap localcloud/tap
+
+        # Install LocalCloud
+        brew install localcloud
+
+        # Verify installation
+        lc --version
+        ```
+    </Tab>
+    <Tab title="Direct Download">
+        ```bash
+        # Download the latest release
+        curl -L -o localcloud https://github.com/localcloud/localcloud/releases/latest/download/localcloud-darwin-amd64
+
+        # Make it executable
+        chmod +x localcloud
+
+        # Move to PATH
+        sudo mv localcloud /usr/local/bin/
+
+        # Create alias
+        sudo ln -s /usr/local/bin/localcloud /usr/local/bin/lc
+
+        # Verify installation
+        lc --version
+        ```
+    </Tab>
+</Tabs>
+
+### Linux
+
+<Tabs>
+    <Tab title="Package Manager">
+        ```bash
+        # Debian/Ubuntu
+        curl -fsSL https://pkg.localcloud.dev/gpg | sudo apt-key add -
+        echo "deb https://pkg.localcloud.dev/apt stable main" | sudo tee /etc/apt/sources.list.d/localcloud.list
+        sudo apt update
+        sudo apt install localcloud
+
+        # Fedora/RHEL
+        sudo dnf config-manager --add-repo https://pkg.localcloud.dev/rpm/localcloud.repo
+        sudo dnf install localcloud
+        ```
+    </Tab>
+    <Tab title="Direct Download">
+        ```bash
+        # Download the latest release
+        curl -L -o localcloud https://github.com/localcloud/localcloud/releases/latest/download/localcloud-linux-amd64
+
+        # Make it executable
+        chmod +x localcloud
+
+        # Move to PATH
+        sudo mv localcloud /usr/local/bin/
+
+        # Create alias
+        sudo ln -s /usr/local/bin/localcloud /usr/local/bin/lc
+
+        # Verify installation
+        lc --version
+        ```
+    </Tab>
+</Tabs>
+
+### Windows (WSL2)
+
+<Steps>
+    <Step title="Install WSL2">
+        Open PowerShell as Administrator and run:
+        ```powershell
+        wsl --install
+        ```
+    </Step>
+
+    <Step title="Install Docker Desktop">
+        Download and install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
+
+        Enable WSL2 integration in Docker Desktop settings.
+    </Step>
+
+    <Step title="Install LocalCloud in WSL">
+        Open WSL terminal and run:
+        ```bash
+        curl -fsSL https://get.localcloud.dev | bash
+        ```
+    </Step>
+</Steps>
+
+## Docker Installation
+
+LocalCloud requires Docker to run services. If you don't have Docker installed:
+
+### macOS
+
+<CardGroup cols={2}>
+    <Card
+        title="Docker Desktop"
+        icon="docker"
+        href="https://www.docker.com/products/docker-desktop/"
+    >
+        Official Docker application for macOS
+    </Card>
+    <Card
+        title="OrbStack"
+        icon="circle"
+        href="https://orbstack.dev"
+    >
+        Lightweight Docker alternative (recommended)
+    </Card>
+</CardGroup>
+
+### Linux
+
+```bash
+# Install Docker Engine
+curl -fsSL https://get.docker.com | sudo bash
+
+# Add your user to docker group
+sudo usermod -aG docker $USER
+
+# Start Docker service
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Log out and back in for group changes to take effect
+```
+
+### Verify Docker
+
+```bash
+# Check Docker is running
+docker ps
+
+# Check Docker version
+docker --version
+```
+
+## Post-Installation
+
+### Verify Installation
+
+```bash
+# Check LocalCloud version
+lc --version
+
+# Run system check
+lc doctor
+```
+
+The `doctor` command will verify:
+- LocalCloud installation
+- Docker availability
+- System resources
+- Network connectivity
+
+### Shell Completion
+
+Enable tab completion for your shell:
+
+<Tabs>
+    <Tab title="Bash">
+        ```bash
+        # Add to ~/.bashrc
+        echo 'source <(lc completion bash)' >> ~/.bashrc
+        source ~/.bashrc
+        ```
+    </Tab>
+    <Tab title="Zsh">
+        ```bash
+        # Add to ~/.zshrc
+        echo 'source <(lc completion zsh)' >> ~/.zshrc
+        source ~/.zshrc
+        ```
+    </Tab>
+    <Tab title="Fish">
+        ```bash
+        # Add to config
+        lc completion fish > ~/.config/fish/completions/lc.fish
+        ```
+    </Tab>
+</Tabs>
+
+## Troubleshooting
+
+<AccordionGroup>
+    <Accordion title="Permission denied when installing">
+        The installer needs sudo access to write to `/usr/local/bin`. You can install to a user directory instead:
+
+        ```bash
+        # Install to home directory
+        curl -fsSL https://get.localcloud.dev | bash -s -- --prefix=$HOME/.local
+
+        # Add to PATH
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+        source ~/.bashrc
+        ```
+    </Accordion>
+
+    <Accordion title="Docker not found">
+        LocalCloud requires Docker. Install it using:
+        - **macOS**: [Docker Desktop](https://www.docker.com/products/docker-desktop/) or [OrbStack](https://orbstack.dev)
+        - **Linux**: `curl -fsSL https://get.docker.com | sudo bash`
+        - **Windows**: [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
+    </Accordion>
+
+    <Accordion title="Command not found: lc">
+        The `lc` command might not be in your PATH. Try:
+
+        ```bash
+        # Use full command
+        localcloud --version
+
+        # Or add alias manually
+        echo 'alias lc="localcloud"' >> ~/.bashrc
+        source ~/.bashrc
+        ```
+    </Accordion>
+</AccordionGroup>
+
+## Updating LocalCloud
+
+To update to the latest version:
+
+```bash
+# Using the installer
+curl -fsSL https://get.localcloud.dev | bash
+
+# Or using package manager
+brew upgrade localcloud  # macOS
+sudo apt upgrade localcloud  # Ubuntu/Debian
+sudo dnf upgrade localcloud  # Fedora
+```
+
+## Uninstalling
+
+To remove LocalCloud:
+
+```bash
+# Remove binary
+sudo rm /usr/local/bin/localcloud /usr/local/bin/lc
+
+# Remove configuration (optional)
+rm -rf ~/.localcloud
+
+# Remove project data (be careful!)
+# rm -rf /path/to/your/projects/.localcloud
+```
+
+## Next Steps
+
+Now that LocalCloud is installed, you're ready to create your first project!
+
+<Card
+    title="Quick Start"
+    icon="rocket"
+    href="/getting-started/quickstart"
+>
+    Create your first LocalCloud project in 5 minutes
+</Card>
