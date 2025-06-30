@@ -1,0 +1,240 @@
+---
+title: 'lc setup'
+description: 'Configure project or create from template'
+icon: 'wand-magic-sparkles'
+---
+
+# lc setup
+
+Configure your LocalCloud project interactively or create a new project from a template.
+
+## Usage
+
+```bash
+lc setup [template] [flags]
+```
+
+## Arguments
+
+- `template` (optional) - Template name to create project from
+
+## Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--name` | Project name (for template creation) | template name |
+| `--port` | API port (for template creation) | auto |
+| `--frontend-port` | Frontend port (for template creation) | auto |
+| `--model` | AI model to use (for template creation) | `qwen2.5:3b` |
+| `--skip-docker` | Generate files only, don't start services | `false` |
+| `--force` | Overwrite existing directory | `false` |
+
+## Modes
+
+### 1. Interactive Configuration (No Arguments)
+
+When run without arguments in an existing project:
+
+```bash
+lc setup
+```
+
+This launches the same interactive wizard as `lc init --interactive`, allowing you to:
+- Select project type
+- Choose components
+- Pick AI models
+- Configure services
+
+<Note>
+    The project must already be initialized with `lc init` before running `lc setup` without arguments.
+</Note>
+
+### 2. Template Creation (With Template Name)
+
+Create a new project from a template:
+
+```bash
+lc setup chat
+lc setup api-only --name my-api --port 8080
+```
+
+## Available Templates
+
+| Template | Description | Services |
+|----------|-------------|----------|
+| `chat` | ChatGPT-like interface with conversation history | Ollama, PostgreSQL, Redis |
+| `code-assistant` | AI-powered code editor and assistant | Ollama, PostgreSQL, Redis, MinIO |
+| `transcribe` | Audio/video transcription service | Whisper, PostgreSQL, MinIO |
+| `image-gen` | AI image generation interface | Stable Diffusion, PostgreSQL, MinIO |
+| `api-only` | REST API without frontend | Ollama, PostgreSQL, Redis |
+
+## Examples
+
+### Configure existing project
+```bash
+# In an initialized project
+lc setup
+```
+
+### Create chat application
+```bash
+lc setup chat
+cd chat
+# Project is ready with all services running!
+```
+
+### Create API with custom settings
+```bash
+lc setup api-only \
+  --name my-api \
+  --port 8080 \
+  --model mistral
+```
+
+### Generate files without starting services
+```bash
+lc setup chat --skip-docker
+# Manually start later with: lc start
+```
+
+### Overwrite existing directory
+```bash
+lc setup chat --name existing-dir --force
+```
+
+## Template Creation Process
+
+When creating from a template, `setup` performs these steps:
+
+1. **System Check**
+- Verifies Docker is installed
+- Checks available RAM and disk space
+- Validates system requirements
+
+2. **Interactive Configuration** (if needed)
+- Project name (if not provided)
+- AI model selection
+- Port allocation
+
+3. **File Generation**
+- Creates project structure
+- Generates configuration files
+- Copies template files
+- Substitutes variables
+
+4. **Service Startup** (unless `--skip-docker`)
+- Pulls required Docker images
+- Starts all services
+- Waits for health checks
+
+5. **Success Summary**
+- Shows service URLs
+- Displays next steps
+- Provides example commands
+
+## Template Structure
+
+Templates include:
+
+```
+template/
+├── docker-compose.yml      # Service definitions
+├── .env.template          # Environment variables
+├── README.md              # Project documentation
+├── backend/               # Backend code (if applicable)
+├── frontend/              # Frontend code (if applicable)
+└── config/                # Configuration files
+```
+
+## Model Selection
+
+During setup, you can choose from recommended models based on your hardware:
+
+### For Limited Resources (8GB RAM)
+- `qwen2.5:3b` - Fast and efficient
+- `phi3` - Microsoft's compact model
+- `gemma2:2b` - Google's tiny model
+
+### For Standard Systems (16GB RAM)
+- `llama2` - Meta's popular model
+- `mistral` - Great for coding
+- `codellama` - Specialized for code
+
+### For High-End Systems (32GB+ RAM)
+- `mixtral:8x7b` - Powerful MoE model
+- `llama3:70b` - Large language model
+- `qwen2.5:32b` - Advanced reasoning
+
+## Port Management
+
+LocalCloud automatically manages ports to avoid conflicts:
+
+1. **Default Ports**:
+- API: 3001
+- Frontend: 3000
+- AI: 11434
+- PostgreSQL: 5432
+- Redis: 6379
+- MinIO: 9000/9001
+
+2. **Automatic Assignment**: If defaults are in use, finds next available port
+
+3. **Manual Override**: Use flags to specify custom ports
+
+## Error Handling
+
+### No project found
+```bash
+Error: no LocalCloud project found. Run 'lc init' first
+```
+**Solution**: Initialize a project first with `lc init`
+
+### Template not found
+```bash
+Error: template 'unknown' not found
+```
+**Solution**: Use `lc templates list` to see available templates
+
+### Insufficient resources
+```bash
+Error: insufficient RAM: required 8GB, available 4GB
+```
+**Solution**: Choose a smaller model or free up system resources
+
+### Port already in use
+```bash
+Error: port 3000 is already in use
+```
+**Solution**: Use `--port` flag to specify a different port
+
+## Advanced Usage
+
+### Custom Template Variables
+
+Templates can use these variables:
+- `{{.ProjectName}}` - Project name
+- `{{.APIPort}}` - API port number
+- `{{.FrontendPort}}` - Frontend port
+- `{{.ModelName}}` - Selected AI model
+- `{{.DatabaseURL}}` - PostgreSQL connection string
+- `{{.RedisURL}}` - Redis connection string
+
+### Environment Configuration
+
+Generated `.env` file includes:
+```env
+PROJECT_NAME={{.ProjectName}}
+API_PORT={{.APIPort}}
+FRONTEND_PORT={{.FrontendPort}}
+DATABASE_URL=postgresql://localcloud:localcloud@localhost:5432/localcloud
+REDIS_URL=redis://localhost:6379
+OLLAMA_URL=http://localhost:11434
+AI_MODEL={{.ModelName}}
+```
+
+## Related Commands
+
+- [`lc init`](/cli/init) - Initialize a project
+- [`lc templates`](/cli/templates) - List available templates
+- [`lc start`](/cli/start) - Start services
+- [`lc component add`](/cli/component) - Add components to existing project

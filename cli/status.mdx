@@ -1,0 +1,238 @@
+---
+title: 'lc status'
+description: 'Show status of LocalCloud services'
+icon: 'chart-line'
+---
+
+# lc status
+
+Display the current status, health, and resource usage of all LocalCloud services.
+
+## Usage
+
+```bash
+lc status [flags]
+```
+
+## Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--details` | `-d` | Show detailed metrics | `false` |
+| `--watch` | `-w` | Continuously monitor status | `false` |
+| `--interval` | `-i` | Update interval in seconds (with --watch) | `5` |
+
+## Examples
+
+### Basic status
+```bash
+lc status
+```
+
+Shows service status with basic resource usage.
+
+### Detailed metrics
+```bash
+lc status --details
+```
+
+Includes CPU details, memory breakdown, network packets, and disk I/O operations.
+
+### Continuous monitoring
+```bash
+lc status --watch
+```
+
+Updates every 5 seconds. Press Ctrl+C to stop.
+
+### Custom interval
+```bash
+lc status --watch --interval 2
+```
+
+Updates every 2 seconds.
+
+## Output Format
+
+### Basic Output
+```
+LocalCloud Status - Project: my-ai-app
+Time: 2024-03-14 15:04:05
+════════════════════════════════════════════════════════════════════════════════════════════════════
+SERVICE      STATUS      HEALTH      CPU      MEMORY              NETWORK I/O         DISK I/O
+───────      ──────      ──────      ───      ──────              ───────────         ────────
+ollama       ● running   ✓ healthy   12.5%    1.2GB/4.0GB (30%)  ↓125MB ↑45MB       R:2.1GB W:156MB
+postgres     ● running   ✓ healthy   2.1%     512MB/1.0GB (51%)  ↓12MB ↑8MB         R:125MB W:89MB
+redis        ● running   ✓ healthy   0.5%     128MB/512MB (25%)  ↓1MB ↑1MB          R:0B W:12MB
+minio        ● running   ✓ healthy   1.8%     256MB/1.0GB (26%)  ↓56MB ↑102MB      R:1.5GB W:2.1GB
+────────────────────────────────────────────────────────────────────────────────────────────────────
+Summary: 4 services running | CPU: 16.9% | Memory: 2.1GB | Network: ↓194MB ↑156MB
+```
+
+### Status Indicators
+
+| Symbol | Status | Description |
+|--------|--------|-------------|
+| ● | running | Service is running normally |
+| ◐ | starting | Service is starting up |
+| ◑ | stopping | Service is shutting down |
+| ○ | stopped | Service is stopped |
+
+### Health Indicators
+
+| Symbol | Health | Description |
+|--------|--------|-------------|
+| ✓ | healthy | Service passed health checks |
+| ✗ | unhealthy | Service failed health checks |
+| … | starting | Health check in progress |
+
+## Detailed Metrics
+
+When using `--details`, additional information is shown:
+
+```
+Detailed Performance Metrics:
+────────────────────────────────────────────────────────────────────────────────────────────────────
+
+Ollama Service:
+  CPU: 12.50% (Online CPUs: 8)
+  Memory:
+    Working Set: 1.2GB
+    Cache: 512MB
+    Total Usage: 1.7GB / 4.0GB (42.50%)
+  Network:
+    Received: 125MB (15234 packets, 0 dropped)
+    Sent: 45MB (8921 packets, 0 dropped)
+  Disk I/O:
+    Read: 2.1GB (1523 ops)
+    Write: 156MB (892 ops)
+  Performance:
+    Model Load Time: 2.3s
+    Inference Speed: 125 tokens/s
+    Active Models: 2
+```
+
+## Resource Metrics
+
+### CPU Usage
+- Percentage of allocated CPU
+- Number of online CPUs
+- System vs user CPU time (in detailed view)
+
+### Memory Usage
+- Working set (active memory)
+- Cache memory
+- Total usage vs limit
+- Percentage utilization
+
+### Network I/O
+- Bytes received/transmitted
+- Packet counts
+- Dropped packets (detailed view)
+
+### Disk I/O
+- Bytes read/written
+- I/O operations count
+- Queue depth (detailed view)
+
+## Service-Specific Metrics
+
+### Ollama (AI)
+- Model load time
+- Inference speed (tokens/second)
+- Number of active models
+- GPU utilization (if available)
+
+### PostgreSQL
+- Active connections
+- Transaction rate
+- Query performance
+- Cache hit ratio
+
+### Redis
+- Operations per second
+- Memory fragmentation
+- Connected clients
+- Hit/miss ratio
+
+### MinIO
+- Object count
+- Total storage used
+- API request rate
+- Bandwidth usage
+
+## Continuous Monitoring
+
+The `--watch` mode provides real-time monitoring:
+
+```bash
+lc status --watch --interval 1
+```
+
+Features:
+- Auto-refreshing display
+- Clear screen between updates
+- Interrupt handling (Ctrl+C)
+- Resource trend indicators
+
+## Output Formats
+
+### Human-Readable (Default)
+Formatted tables with colors and symbols.
+
+### JSON Format
+```bash
+# Currently not implemented, but planned
+lc status --json
+```
+
+## Error States
+
+### Docker not running
+```bash
+Error: Docker is not running. Please start Docker Desktop
+```
+
+### No project found
+```bash
+Error: no LocalCloud project found
+```
+
+### No services running
+```bash
+LocalCloud Status - Project: my-ai-app
+Time: 2024-03-14 15:04:05
+════════════════════════════════════════════════════════════════════════════════════════════════════
+No services running
+```
+
+## Performance Impact
+
+The status command has minimal performance impact:
+- Uses Docker stats API
+- Samples metrics every second
+- Caches results between updates
+- No impact on service performance
+
+## Troubleshooting
+
+### Metrics not available
+Some metrics may show `-` if:
+- Service just started
+- Docker stats not ready
+- Container restarting
+
+### High resource usage
+If you see high resource usage:
+1. Check with `lc logs [service]`
+2. Review model sizes
+3. Check for memory leaks
+4. Consider resource limits
+
+## Related Commands
+
+- [`lc start`](/cli/start) - Start services
+- [`lc stop`](/cli/stop) - Stop services
+- [`lc logs`](/cli/logs) - View service logs
+- [`lc info`](/cli/info) - Connection information
+- [`lc ps`](/cli/ps) - List containers

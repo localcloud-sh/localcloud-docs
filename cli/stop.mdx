@@ -1,0 +1,178 @@
+---
+title: 'lc stop'
+description: 'Stop LocalCloud services'
+icon: 'stop'
+---
+
+# lc stop
+
+Stop all or specific LocalCloud services for the current project.
+
+## Usage
+
+```bash
+lc stop [service] [flags]
+```
+
+## Arguments
+
+- `service` (optional) - Specific service to stop. Valid values: `ai`, `postgres`, `cache`, `queue`, `minio`, `all`
+
+## Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--all` | `-a` | Stop all services | `true` |
+| `--service` | `-s` | Stop specific service | `""` |
+
+## Examples
+
+### Stop all services
+```bash
+lc stop
+```
+
+Stops all running LocalCloud services for the current project.
+
+### Stop specific service
+```bash
+lc stop ai
+lc stop postgres
+lc stop cache
+```
+
+### Stop using service flag
+```bash
+lc stop --service postgres
+lc stop -s redis
+```
+
+## Service Names
+
+Same as [`lc start`](/cli/start):
+- `ai` (aliases: `ollama`, `llm`)
+- `postgres` (aliases: `db`, `database`)
+- `cache` (alias: `redis`)
+- `queue`
+- `minio` (aliases: `storage`, `s3`)
+
+## What Happens When Stopping
+
+1. **Service Discovery**
+- Finds all running containers
+- Identifies LocalCloud services
+
+2. **Graceful Shutdown**
+- Sends SIGTERM to containers
+- Waits for clean shutdown (10s timeout)
+- Forces stop if needed
+
+3. **Cleanup**
+- Removes stopped containers
+- Preserves data volumes
+- Keeps Docker network
+
+## Output Example
+
+```
+Stopping LocalCloud services...
+
+✓ Ollama stopped
+✓ PostgreSQL stopped
+✓ Redis stopped
+✓ MinIO stopped
+
+All services stopped successfully
+```
+
+## Data Persistence
+
+<Warning>
+    Data is preserved when stopping services. Your databases, models, and files remain intact.
+</Warning>
+
+- **AI Models**: Stored in `ollama_models` volume
+- **PostgreSQL Data**: Stored in `postgres_data` volume
+- **Redis Data**: Stored in `redis_data` volume
+- **MinIO Data**: Stored in `minio_data` volume
+
+To remove data, use [`lc reset --hard`](/cli/reset).
+
+## Error Handling
+
+### No services running
+```bash
+Info: No services are running
+```
+This is informational - no action needed.
+
+### Docker not running
+```bash
+Error: Docker is not running
+```
+**Solution**: Docker must be running to manage containers
+
+### Service not found
+```bash
+Error: service 'unknown' not found
+```
+**Solution**: Use valid service names (ai, postgres, cache, queue, minio)
+
+## Partial Stops
+
+When stopping specific services, dependencies are respected:
+
+```bash
+# Stopping cache also stops queue (same Redis instance)
+lc stop cache
+
+# Other services continue running
+lc status
+```
+
+## Stop vs Reset
+
+| Command | Effect | Data |
+|---------|--------|------|
+| `lc stop` | Stops containers | Preserved |
+| `lc reset` | Stops and removes containers | Preserved |
+| `lc reset --hard` | Removes everything | Deleted |
+
+## Advanced Usage
+
+### Force stop with timeout
+```bash
+# Docker will force stop after 5 seconds
+docker stop -t 5 localcloud-postgres
+```
+
+### Stop and remove containers
+```bash
+# Stop services and remove containers
+lc stop && docker container prune -f
+```
+
+## Troubleshooting
+
+### Service won't stop
+If a service hangs during shutdown:
+
+1. Check logs: `lc logs [service]`
+2. Force stop: `docker kill localcloud-[service]`
+3. Remove container: `docker rm -f localcloud-[service]`
+
+### Orphaned containers
+```bash
+# List all LocalCloud containers
+docker ps -a | grep localcloud
+
+# Remove orphaned containers
+docker container prune -f
+```
+
+## Related Commands
+
+- [`lc start`](/cli/start) - Start services
+- [`lc status`](/cli/status) - Check service status
+- [`lc reset`](/cli/reset) - Reset project
+- [`lc ps`](/cli/ps) - List containers

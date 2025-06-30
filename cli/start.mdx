@@ -1,0 +1,211 @@
+---
+title: 'lc start'
+description: 'Start LocalCloud services'
+icon: 'play'
+---
+
+# lc start
+
+Start all or specific LocalCloud services for the current project.
+
+## Usage
+
+```bash
+lc start [service] [flags]
+```
+
+## Arguments
+
+- `service` (optional) - Specific service to start. Valid values: `ai`, `postgres`, `cache`, `queue`, `minio`, `all`
+
+## Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--only` | Start only specified services (comma-separated) | `[]` |
+| `--no-tunnel` | Don't start tunnel connection | `true` |
+| `--info` | Show connection info after start | `true` |
+
+## Examples
+
+### Start all services
+```bash
+lc start
+```
+
+Starts all services configured in your project.
+
+### Start specific service
+```bash
+lc start ai
+lc start postgres
+lc start cache
+```
+
+### Start multiple specific services
+```bash
+lc start --only ai,cache
+```
+
+## Service Names
+
+| Service | Aliases | Description |
+|---------|---------|-------------|
+| `ai` | `ollama`, `llm` | AI/LLM service (Ollama) |
+| `postgres` | `db`, `database` | PostgreSQL database |
+| `cache` | `redis` | Redis cache |
+| `queue` | - | Redis queue (shares instance with cache) |
+| `minio` | `storage`, `s3` | MinIO object storage |
+
+## What Happens When Starting
+
+1. **Pre-flight Checks**
+- Verifies Docker is running
+- Checks project configuration
+- Validates component configuration
+
+2. **Service Startup**
+- Creates Docker network if needed
+- Starts services in dependency order:
+1. Database (PostgreSQL)
+2. Cache/Queue (Redis)
+3. Storage (MinIO)
+4. AI (Ollama)
+- Waits for health checks
+
+3. **Model Management**
+- Downloads AI models if not present
+- Shows download progress
+- Validates model availability
+
+4. **Connection Info**
+- Displays service URLs
+- Shows access credentials
+- Provides example usage
+
+## Component-Based Startup
+
+Services are started based on configured components:
+
+| Component | Services Started |
+|-----------|-----------------|
+| `llm` | Ollama |
+| `embedding` | Ollama |
+| `database` | PostgreSQL |
+| `cache` | Redis |
+| `queue` | Redis |
+| `storage` | MinIO |
+
+## Output Example
+
+```
+Starting services for configured components: llm, database, cache
+
+✓ Network created
+✓ PostgreSQL started (localhost:5432)
+✓ Redis started (localhost:6379)
+✓ Ollama started (http://localhost:11434)
+
+Downloading model llama2...
+[████████████████████] 100% 3.8GB/3.8GB
+
+All services are running!
+
+Connection Information:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ AI (Ollama): http://localhost:11434
+✓ PostgreSQL: postgresql://localcloud:localcloud@localhost:5432/localcloud
+✓ Redis: redis://localhost:6379
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+## Error Handling
+
+### Docker not running
+```bash
+Error: Docker is not running. Please start Docker Desktop first
+```
+**Solution**: Start Docker Desktop or Docker Engine
+
+### No components configured
+```bash
+Warning: No components configured in this project.
+
+To configure components, run:
+  • lc setup
+  • Or: lc component add <component-id>
+```
+**Solution**: Configure components before starting
+
+### Port already in use
+```bash
+Error: port 5432 is already in use by another process
+```
+**Solution**: Stop the conflicting service or change the port in config
+
+### Model download failed
+```bash
+Error: failed to pull model llama2: connection timeout
+```
+**Solution**: Check internet connection and retry
+
+## Health Checks
+
+Each service includes health checks:
+
+- **PostgreSQL**: Checks database connectivity
+- **Redis**: Pings the service
+- **MinIO**: Verifies API availability
+- **Ollama**: Checks API endpoint
+
+Services are considered ready only after passing health checks.
+
+## Resource Management
+
+LocalCloud monitors resource usage during startup:
+
+- Warns if available RAM is low
+- Suggests smaller models if needed
+- Shows memory usage per service
+
+## Advanced Usage
+
+### Start with verbose output
+```bash
+lc start --verbose
+```
+
+Shows detailed progress and debug information.
+
+### Skip connection info
+```bash
+lc start --info=false
+```
+
+### Start services for specific components
+```bash
+# First, add components
+lc component add llm
+lc component add cache
+
+# Then start only those services
+lc start
+```
+
+## Service Dependencies
+
+Services are started respecting dependencies:
+
+```mermaid
+graph LR
+    A[PostgreSQL] --> B[Redis]
+    B --> C[MinIO]
+    C --> D[Ollama]
+```
+
+## Related Commands
+
+- [`lc stop`](/cli/stop) - Stop services
+- [`lc status`](/cli/status) - Check service status
+- [`lc logs`](/cli/logs) - View service logs
+- [`lc services`](/cli/services) - List running services

@@ -1,0 +1,138 @@
+---
+title: 'lc services'
+description: 'List all running services'
+icon: 'list'
+---
+
+# lc services
+
+List all running LocalCloud services with their status and connection information.
+
+## Usage
+
+```bash
+lc services [flags]
+```
+
+## Aliases
+
+- `lc svcs`
+- `lc ls`
+
+## Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--json` | Output in JSON format | `false` |
+| `--detailed` | Show detailed information including service types | `false` |
+
+## Examples
+
+### List all services
+```bash
+lc services
+```
+
+### Detailed view
+```bash
+lc services --detailed
+```
+
+### JSON output
+```bash
+lc services --json
+```
+
+## Output Formats
+
+### Simple View (Default)
+```
+SERVICE     MODEL        STATUS     PORT
+-------     -----        ------     ----
+ollama      llama2       running    11434
+postgres                 running    5432
+redis                    running    6379
+minio                    running    9000
+```
+
+Only shows model information for AI services.
+
+### Detailed View
+```
+SERVICE     TYPE         MODEL        PORT     URL                      STATUS
+-------     ----         -----        ----     ---                      ------
+ollama      ai           llama2       11434    http://localhost:11434   running
+postgres    database     -            5432     localhost:5432           running
+redis       cache        -            6379     redis://localhost:6379   running
+minio       storage      -            9000     http://localhost:9000    running
+```
+
+Shows service type, full URLs, and model information.
+
+### JSON Format
+```json
+[
+  {
+    "name": "ollama",
+    "type": "ai",
+    "port": 11434,
+    "url": "http://localhost:11434",
+    "status": "running",
+    "container_id": "abc123...",
+    "model": "llama2"
+  },
+  {
+    "name": "postgres",
+    "type": "database",
+    "port": 5432,
+    "url": "localhost:5432",
+    "status": "running",
+    "container_id": "def456..."
+  }
+]
+```
+
+## Service Information
+
+The command shows:
+- **SERVICE**: Service name
+- **TYPE**: Service type (ai, database, cache, storage)
+- **MODEL**: AI model name (for AI services only)
+- **PORT**: Port number the service is listening on
+- **URL**: Full connection URL
+- **STATUS**: Current status (running, stopped, error)
+
+## Service Types
+
+| Type | Services |
+|------|----------|
+| `ai` | Ollama, LocalLlama |
+| `database` | PostgreSQL, pgvector |
+| `cache` | Redis (cache mode) |
+| `queue` | Redis (queue mode) |
+| `storage` | MinIO |
+
+## Status Indicators
+
+- `running` - Service is active and healthy
+- `starting` - Service is starting up
+- `stopping` - Service is shutting down
+- `stopped` - Service is not running
+- `error` - Service encountered an error
+
+## Empty Project
+
+If no services are running:
+```
+No services are currently running.
+
+Start services with: lc start [service-name]
+```
+
+## Related Commands
+
+- [`lc start`](/cli/start) - Start services
+- [`lc stop`](/cli/stop) - Stop services
+- [`lc status`](/cli/status) - Detailed status with resource usage
+- [`lc service`](/cli/service) - Manage individual services
+- [`lc ps`](/cli/ps) - List Docker containers

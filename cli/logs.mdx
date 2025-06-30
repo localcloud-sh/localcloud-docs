@@ -1,0 +1,256 @@
+---
+title: 'lc logs'
+description: 'Show logs from LocalCloud services'
+icon: 'file-lines'
+---
+
+# lc logs
+
+Display logs from LocalCloud services with advanced filtering options.
+
+## Usage
+
+```bash
+lc logs [service] [flags]
+```
+
+## Arguments
+
+- `service` (optional) - Specific service to show logs for
+
+## Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--follow` | `-f` | Follow log output | `false` |
+| `--tail` | `-n` | Number of lines to show from the end | `100` |
+| `--since` | | Show logs since timestamp (e.g., 1h, 30m) | `""` |
+| `--level` | | Minimum log level (debug, info, warn, error) | `""` |
+| `--output` | | Output format (text, json) | `text` |
+| `--search` | | Search logs for specific term | `""` |
+
+## Examples
+
+### Show all logs
+```bash
+lc logs
+```
+
+Shows last 100 lines from all services.
+
+### Follow logs from specific service
+```bash
+lc logs ai -f
+lc logs postgres --follow
+```
+
+### Show specific number of lines
+```bash
+lc logs -n 50
+lc logs --tail 200
+```
+
+### Filter by time
+```bash
+# Logs from last hour
+lc logs --since 1h
+
+# Logs from last 30 minutes
+lc logs --since 30m
+
+# Logs since specific time
+lc logs --since "2024-03-14T15:04:05"
+```
+
+### Filter by log level
+```bash
+# Show only errors
+lc logs --level error
+
+# Show warnings and above
+lc logs --level warn
+```
+
+### Search logs
+```bash
+# Search for specific term
+lc logs --search "model"
+
+# Search in specific service
+lc logs ai --search "loading"
+```
+
+### JSON output
+```bash
+lc logs --output json
+```
+
+## Service Names
+
+Valid service names:
+- `ai` (alias: `ollama`)
+- `postgres` (alias: `database`)
+- `redis` (alias: `cache`)
+- `minio` (alias: `storage`)
+
+## Log Format
+
+### Text Format (Default)
+```
+2024-03-14 15:04:05 INFO  [ollama  ] Starting Ollama server on port 11434
+2024-03-14 15:04:06 INFO  [ollama  ] Loading model: llama2
+2024-03-14 15:04:08 INFO  [postgres] PostgreSQL init complete
+2024-03-14 15:04:08 INFO  [redis   ] Ready to accept connections
+```
+
+### JSON Format
+```json
+{
+  "timestamp": "2024-03-14T15:04:05Z",
+  "level": "info",
+  "service": "ollama",
+  "message": "Starting Ollama server on port 11434",
+  "container_id": "abc123..."
+}
+```
+
+## Log Levels
+
+Logs are categorized by level:
+
+| Level | Color | Description |
+|-------|-------|-------------|
+| `DEBUG` | Cyan | Detailed debugging information |
+| `INFO` | White | Informational messages |
+| `WARN` | Yellow | Warning messages |
+| `ERROR` | Red | Error messages |
+
+## Log Storage
+
+Logs are stored in:
+```
+.localcloud/logs/
+├── ollama.log
+├── postgres.log
+├── redis.log
+└── minio.log
+```
+
+Logs are automatically rotated when they reach 100MB.
+
+## Advanced Filtering
+
+### Combine filters
+```bash
+# Errors from AI service in last hour
+lc logs ai --level error --since 1h
+
+# Follow postgres logs with search
+lc logs postgres -f --search "connection"
+
+# Last 50 error logs as JSON
+lc logs -n 50 --level error --output json
+```
+
+### Time formats
+- Relative: `1h`, `30m`, `10s`
+- Absolute: `2024-03-14T15:04:05`
+- Human: `"1 hour ago"`, `"yesterday"`
+
+## Real-time Monitoring
+
+Follow mode (`-f`) shows logs in real-time:
+
+```bash
+# Follow all logs
+lc logs -f
+
+# Follow with filters
+lc logs -f --level warn --search "error"
+```
+
+Press `Ctrl+C` to stop following.
+
+## Service-Specific Logs
+
+### AI Service (Ollama)
+Common log entries:
+- Model loading progress
+- Inference performance
+- Memory usage
+- API requests
+
+### PostgreSQL
+Common log entries:
+- Connection attempts
+- Query execution
+- Checkpoint activity
+- Error messages
+
+### Redis
+Common log entries:
+- Client connections
+- Memory usage
+- Persistence events
+- Command statistics
+
+### MinIO
+Common log entries:
+- API requests
+- Bucket operations
+- Storage statistics
+- Access logs
+
+## Troubleshooting
+
+### No logs appearing
+```bash
+# Check if services are running
+lc status
+
+# Check log directory
+ls -la .localcloud/logs/
+```
+
+### Log file too large
+Logs are automatically rotated at 100MB. Old logs are compressed and kept for 7 days.
+
+### Permission denied
+```bash
+# Fix log file permissions
+chmod 644 .localcloud/logs/*.log
+```
+
+## Performance Tips
+
+1. **Use filters** to reduce output volume
+2. **Limit tail size** for faster response
+3. **Use JSON output** for programmatic parsing
+4. **Search specific services** instead of all logs
+
+## Integration
+
+### Parse JSON logs
+```bash
+# Extract errors with jq
+lc logs --output json --level error | jq '.message'
+
+# Count by service
+lc logs --output json | jq -r '.service' | sort | uniq -c
+```
+
+### Save to file
+```bash
+# Save filtered logs
+lc logs --since 1h --level error > errors.log
+
+# Continuous logging to file
+lc logs -f | tee -a app.log
+```
+
+## Related Commands
+
+- [`lc status`](/cli/status) - Check service status
+- [`lc ps`](/cli/ps) - List containers
+- [`lc debug`](/cli/debug) - Debug information
+- [`lc service logs`](/cli/service) - Alternative log viewing

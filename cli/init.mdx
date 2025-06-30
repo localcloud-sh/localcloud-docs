@@ -1,0 +1,287 @@
+---
+title: 'CLI Overview'
+description: 'LocalCloud command-line interface reference'
+icon: 'terminal'
+---
+
+# CLI Overview
+
+LocalCloud provides a powerful command-line interface (CLI) for managing your local AI development environment. All commands are available through both `localcloud` and the shorter `lc` alias.
+
+## Command Structure
+
+```bash
+lc [command] [subcommand] [flags]
+```
+
+<Note>
+    You can use either `localcloud` or `lc` - they are identical. We'll use `lc` in examples for brevity.
+</Note>
+
+## Global Flags
+
+These flags are available for all commands:
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--verbose` | `-v` | Enable verbose output | `false` |
+| `--config` | `-c` | Config file path | `./.localcloud/config.yaml` |
+| `--project` | `-p` | Project directory path | `.` |
+
+## Command Categories
+
+<CardGroup cols={2}>
+    <Card title="Project Management" icon="folder">
+        Initialize, configure, and manage projects
+        - `lc init`
+        - `lc setup`
+        - `lc status`
+        - `lc reset`
+    </Card>
+
+    <Card title="Service Control" icon="play">
+        Start, stop, and manage services
+        - `lc start`
+        - `lc stop`
+        - `lc services`
+        - `lc logs`
+    </Card>
+
+    <Card title="AI Models" icon="robot">
+        Manage language models
+        - `lc models list`
+        - `lc models pull`
+        - `lc models remove`
+    </Card>
+
+    <Card title="Configuration" icon="cog">
+        View and manage configuration
+        - `lc config show`
+        - `lc config validate`
+        - `lc component add`
+    </Card>
+</CardGroup>
+
+## Quick Reference
+
+### Essential Commands
+
+```bash
+# Initialize a new project
+lc init [project-name]
+
+# Interactive setup
+lc setup
+
+# Start all services
+lc start
+
+# Check status
+lc status
+
+# View logs
+lc logs
+
+# Stop services
+lc stop
+```
+
+### Service Management
+
+```bash
+# List running services
+lc services
+
+# Start specific service
+lc start postgres
+
+# View service logs
+lc logs ollama -f
+
+# Get service info
+lc info
+```
+
+### Model Management
+
+```bash
+# List available models
+lc models list
+
+# Download a model
+lc models pull llama2
+
+# Remove a model
+lc models remove llama2
+```
+
+## Command Aliases
+
+Many commands have shorter aliases for convenience:
+
+| Full Command | Aliases |
+|--------------|---------|
+| `lc services` | `lc svcs`, `lc ls` |
+| `lc models` | `lc model`, `lc m` |
+| `lc component` | `lc comp` |
+| `lc models remove` | `lc models rm`, `lc models delete` |
+
+## Output Formats
+
+Most commands support different output formats:
+
+```bash
+# Default human-readable output
+lc status
+
+# JSON output for scripting
+lc info --json
+
+# Detailed output
+lc services --detailed
+```
+
+## Auto-completion
+
+Enable tab completion for your shell:
+
+<Tabs>
+    <Tab title="Bash">
+        ```bash
+        # Add to ~/.bashrc
+        source <(lc completion bash)
+        ```
+    </Tab>
+    <Tab title="Zsh">
+        ```bash
+        # Add to ~/.zshrc
+        source <(lc completion zsh)
+        ```
+    </Tab>
+    <Tab title="Fish">
+        ```bash
+        # Add to config
+        lc completion fish > ~/.config/fish/completions/lc.fish
+        ```
+    </Tab>
+</Tabs>
+
+## Help System
+
+Get help for any command:
+
+```bash
+# General help
+lc --help
+
+# Command-specific help
+lc start --help
+
+# Subcommand help
+lc models pull --help
+```
+
+## Version Information
+
+```bash
+# Check LocalCloud version
+lc --version
+
+# Detailed version info
+lc version --detailed
+```
+
+## Common Workflows
+
+### Starting a New Project
+
+```bash
+# Create and setup
+mkdir my-app && cd my-app
+lc init
+lc setup
+lc start
+```
+
+### Daily Development
+
+```bash
+# Morning startup
+lc start
+lc status
+
+# Check logs if needed
+lc logs -f
+
+# Evening shutdown
+lc stop
+```
+
+### Model Management
+
+```bash
+# See what's available
+lc models list
+
+# Get a new model
+lc models pull mistral
+
+# Clean up unused models
+lc models remove unused-model
+```
+
+## Error Handling
+
+LocalCloud provides clear error messages:
+
+```bash
+# Example: Project not initialized
+$ lc start
+Error: no LocalCloud project found. Run 'localcloud init' first
+
+# Example: Docker not running
+$ lc start
+Error: Docker is not running. Please start Docker Desktop first
+```
+
+## Environment Variables
+
+LocalCloud respects these environment variables:
+
+- `LOCALCLOUD_CONFIG` - Override config file location
+- `LOCALCLOUD_PROJECT` - Override project directory
+- `LOCALCLOUD_VERBOSE` - Enable verbose output
+- `NO_COLOR` - Disable colored output
+
+## Next Steps
+
+<CardGroup cols={2}>
+    <Card
+        title="Project Commands"
+        icon="folder"
+        href="/cli/init"
+    >
+        Learn about project initialization
+    </Card>
+    <Card
+        title="Service Commands"
+        icon="server"
+        href="/cli/start"
+    >
+        Master service management
+    </Card>
+    <Card
+        title="Model Commands"
+        icon="robot"
+        href="/cli/models"
+    >
+        Explore AI model management
+    </Card>
+    <Card
+        title="Configuration"
+        icon="cog"
+        href="/cli/config"
+    >
+        Configure your environment
+    </Card>
+</CardGroup>
