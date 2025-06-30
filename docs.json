@@ -1,5 +1,6 @@
 {
-  "$schema": "https://mintlify.com/schema.json",
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "willow",
   "name": "LocalCloud",
   "logo": {
     "dark": "/logo/dark.svg",
@@ -9,144 +10,154 @@
   "colors": {
     "primary": "#0D9373",
     "light": "#07C983",
-    "dark": "#0D9373",
-    "anchors": {
-      "from": "#0D9373",
-      "to": "#07C983"
+    "dark": "#0D9373"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/localcloud/localcloud"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get Started",
+      "href": "https://github.com/localcloud/localcloud"
     }
   },
-  "topbarLinks": [
-    {
-      "name": "GitHub",
-      "url": "https://github.com/localcloud/localcloud"
-    }
-  ],
-  "topbarCtaButton": {
-    "name": "Get Started",
-    "url": "https://github.com/localcloud/localcloud"
-  },
-  "tabs": [
-    {
-      "name": "CLI Reference",
-      "url": "cli"
-    },
-    {
-      "name": "Examples",
-      "url": "examples"
-    }
-  ],
-  "anchors": [
-    {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "getting-started/introduction"
-    },
-    {
-      "name": "Community",
-      "icon": "discord",
-      "url": "https://discord.gg/localcloud"
-    },
-    {
-      "name": "GitHub",
-      "icon": "github",
-      "url": "https://github.com/localcloud/localcloud"
-    }
-  ],
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": [
-        "getting-started/introduction",
-        "getting-started/installation",
-        "getting-started/quickstart"
-      ]
-    },
-    {
-      "group": "Core Concepts",
-      "pages": [
-        "concepts/services",
-        "concepts/projects"
-      ]
-    },
-    {
-      "group": "CLI Commands",
-      "pages": [
-        "cli/overview",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "getting-started/introduction",
+              "getting-started/installation",
+              "getting-started/quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/services",
+              "concepts/projects"
+            ]
+          },
+          {
+            "group": "Using Services",
+            "pages": [
+              "services/ollama",
+              "services/postgresql",
+              "services/redis",
+              "services/minio"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/config-yaml",
+              "configuration/environment"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "troubleshooting/common-issues",
+              "troubleshooting/faq"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CLI Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "cli/overview"
+            ]
+          },
+          {
+            "group": "Basic Commands",
+            "pages": [
+              "cli/init",
+              "cli/setup",
+              "cli/start",
+              "cli/stop",
+              "cli/status"
+            ]
+          },
+          {
+            "group": "Service Management",
+            "pages": [
+              "cli/services",
+              "cli/logs",
+              "cli/ps",
+              "cli/component"
+            ]
+          },
+          {
+            "group": "AI Models",
+            "pages": [
+              "cli/models"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "cli/config"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "cli/info",
+              "cli/doctor",
+              "cli/reset"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Examples",
+        "groups": [
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/ai-chat",
+              "examples/database",
+              "examples/storage"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
         {
-          "group": "Basic Commands",
-          "pages": [
-            "cli/init",
-            "cli/setup",
-            "cli/start",
-            "cli/stop",
-            "cli/status"
-          ]
+          "anchor": "Documentation",
+          "href": "getting-started/introduction",
+          "icon": "book-open-cover"
         },
         {
-          "group": "Service Management",
-          "pages": [
-            "cli/services",
-            "cli/logs",
-            "cli/ps",
-            "cli/component"
-          ]
+          "anchor": "Community",
+          "href": "https://discord.gg/localcloud",
+          "icon": "discord"
         },
         {
-          "group": "AI Models",
-          "pages": [
-            "cli/models"
-          ]
-        },
-        {
-          "group": "Configuration",
-          "pages": [
-            "cli/config"
-          ]
-        },
-        {
-          "group": "Utilities",
-          "pages": [
-            "cli/info",
-            "cli/doctor",
-            "cli/reset"
-          ]
+          "anchor": "GitHub",
+          "href": "https://github.com/localcloud/localcloud",
+          "icon": "github"
         }
       ]
-    },
-    {
-      "group": "Using Services",
-      "pages": [
-        "services/ollama",
-        "services/postgresql",
-        "services/redis",
-        "services/minio"
-      ]
-    },
-    {
-      "group": "Configuration",
-      "pages": [
-        "configuration/config-yaml",
-        "configuration/environment"
-      ]
-    },
-    {
-      "group": "Examples",
-      "pages": [
-        "examples/ai-chat",
-        "examples/database",
-        "examples/storage"
-      ]
-    },
-    {
-      "group": "Troubleshooting",
-      "pages": [
-        "troubleshooting/common-issues",
-        "troubleshooting/faq"
-      ]
     }
-  ],
-  "footerSocials": {
-    "github": "https://github.com/localcloud/localcloud",
-    "discord": "https://discord.gg/localcloud"
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/localcloud/localcloud",
+      "discord": "https://discord.gg/localcloud"
+    }
   }
 }
