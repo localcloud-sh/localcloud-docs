@@ -131,7 +131,7 @@
         },
         {
           "anchor": "GitHub",
-          "href": "https://github.com/localcloud/localcloud",
+          "href": "https://github.com/localcloud-sh/localcloud",
           "icon": "github"
         }
       ]
@@ -145,18 +145,18 @@
     "links": [
       {
         "label": "GitHub",
-        "href": "https://github.com/localcloud/localcloud"
+        "href": "https://github.com/localcloud-sh/localcloud"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Get Started",
-      "href": "https://github.com/localcloud/localcloud"
+      "href": "https://github.com/localcloud-sh/localcloud"
     }
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/localcloud/localcloud",
+      "github": "https://github.com/localcloud-sh/localcloud",
       "discord": "https://discord.gg/localcloud"
     }
   }

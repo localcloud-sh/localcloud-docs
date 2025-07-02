@@ -42,15 +42,16 @@ LocalCloud can be installed on macOS, Linux, and Windows (via WSL2). The install
 The fastest way to install LocalCloud:
 
 ```bash
-curl -fsSL https://get.localcloud.dev | bash
+curl -fsSL https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh | bash
 ```
 
 This script will:
 1. Detect your operating system
-2. Download the appropriate binary
-3. Install it to `/usr/local/bin`
-4. Create the `lc` alias
-5. Verify the installation
+2. Use Homebrew if available (macOS)
+3. Download the appropriate binary
+4. Install it to `/usr/local/bin`
+5. Create the `lc` alias
+6. Verify the installation
 
 <Note>
     The installer requires `sudo` access to install to `/usr/local/bin`. You'll be prompted for your password.
@@ -63,29 +64,35 @@ This script will:
 <Tabs>
     <Tab title="Homebrew">
         ```bash
-        # Add LocalCloud tap
-        brew tap localcloud/tap
-
         # Install LocalCloud
-        brew install localcloud
+        brew install localcloud-sh/tap/localcloud
 
         # Verify installation
         lc --version
         ```
     </Tab>
     <Tab title="Direct Download">
+        **Apple Silicon (M1/M2/M3)**:
         ```bash
-        # Download the latest release
-        curl -L -o localcloud https://github.com/localcloud/localcloud/releases/latest/download/localcloud-darwin-amd64
+        # Download and extract
+        curl -L https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-darwin-arm64.tar.gz | tar xz
 
-        # Make it executable
-        chmod +x localcloud
+        # Install
+        sudo install -m 755 localcloud-darwin-arm64 /usr/local/bin/localcloud
+        sudo ln -sf /usr/local/bin/localcloud /usr/local/bin/lc
 
-        # Move to PATH
-        sudo mv localcloud /usr/local/bin/
+        # Verify installation
+        lc --version
+        ```
 
-        # Create alias
-        sudo ln -s /usr/local/bin/localcloud /usr/local/bin/lc
+        **Intel Mac**:
+        ```bash
+        # Download and extract
+        curl -L https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-darwin-amd64.tar.gz | tar xz
+
+        # Install
+        sudo install -m 755 localcloud-darwin-amd64 /usr/local/bin/localcloud
+        sudo ln -sf /usr/local/bin/localcloud /usr/local/bin/lc
 
         # Verify installation
         lc --version
@@ -96,32 +103,37 @@ This script will:
 ### Linux
 
 <Tabs>
-    <Tab title="Package Manager">
+    <Tab title="Homebrew (if installed)">
         ```bash
-        # Debian/Ubuntu
-        curl -fsSL https://pkg.localcloud.dev/gpg | sudo apt-key add -
-        echo "deb https://pkg.localcloud.dev/apt stable main" | sudo tee /etc/apt/sources.list.d/localcloud.list
-        sudo apt update
-        sudo apt install localcloud
+        # Install LocalCloud
+        brew install localcloud-sh/tap/localcloud
 
-        # Fedora/RHEL
-        sudo dnf config-manager --add-repo https://pkg.localcloud.dev/rpm/localcloud.repo
-        sudo dnf install localcloud
+        # Verify installation
+        lc --version
         ```
     </Tab>
     <Tab title="Direct Download">
+        **AMD64**:
         ```bash
-        # Download the latest release
-        curl -L -o localcloud https://github.com/localcloud/localcloud/releases/latest/download/localcloud-linux-amd64
+        # Download and extract
+        curl -L https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-linux-amd64.tar.gz | tar xz
 
-        # Make it executable
-        chmod +x localcloud
+        # Install
+        sudo install -m 755 localcloud-linux-amd64 /usr/local/bin/localcloud
+        sudo ln -sf /usr/local/bin/localcloud /usr/local/bin/lc
 
-        # Move to PATH
-        sudo mv localcloud /usr/local/bin/
+        # Verify installation
+        lc --version
+        ```
 
-        # Create alias
-        sudo ln -s /usr/local/bin/localcloud /usr/local/bin/lc
+        **ARM64**:
+        ```bash
+        # Download and extract
+        curl -L https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-linux-arm64.tar.gz | tar xz
+
+        # Install
+        sudo install -m 755 localcloud-linux-arm64 /usr/local/bin/localcloud
+        sudo ln -sf /usr/local/bin/localcloud /usr/local/bin/lc
 
         # Verify installation
         lc --version
@@ -148,7 +160,7 @@ This script will:
     <Step title="Install LocalCloud in WSL">
         Open WSL terminal and run:
         ```bash
-        curl -fsSL https://get.localcloud.dev | bash
+        curl -fsSL https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh | bash
         ```
     </Step>
 </Steps>
@@ -255,7 +267,7 @@ Enable tab completion for your shell:
 
         ```bash
         # Install to home directory
-        curl -fsSL https://get.localcloud.dev | bash -s -- --prefix=$HOME/.local
+        curl -fsSL https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh | bash -s -- --prefix=$HOME/.local
 
         # Add to PATH
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
@@ -289,13 +301,14 @@ Enable tab completion for your shell:
 To update to the latest version:
 
 ```bash
-# Using the installer
-curl -fsSL https://get.localcloud.dev | bash
+# Using Homebrew (macOS/Linux)
+brew upgrade localcloud
 
-# Or using package manager
-brew upgrade localcloud  # macOS
-sudo apt upgrade localcloud  # Ubuntu/Debian
-sudo dnf upgrade localcloud  # Fedora
+# Using the installer script
+curl -fsSL https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh | bash
+
+# Or download the latest release directly from:
+# https://github.com/localcloud-sh/localcloud/releases/latest
 ```
 
 ## Uninstalling
@@ -303,7 +316,10 @@ sudo dnf upgrade localcloud  # Fedora
 To remove LocalCloud:
 
 ```bash
-# Remove binary
+# Using Homebrew
+brew uninstall localcloud
+
+# Manual removal
 sudo rm /usr/local/bin/localcloud /usr/local/bin/lc
 
 # Remove configuration (optional)
