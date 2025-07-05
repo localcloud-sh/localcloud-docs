@@ -1,0 +1,720 @@
+---
+title: 'Storage (MinIO)'
+description: 'S3-compatible object storage for files, images, and documents'
+icon: 'box'
+---
+
+# Storage Service (MinIO)
+
+LocalCloud includes MinIO, a high-performance S3-compatible object storage system perfect for storing files, images, documents, and any binary data your applications need.
+
+## What is MinIO Storage?
+
+MinIO provides S3-compatible object storage that:
+- **S3 API Compatible** - Works with all S3 SDKs and tools
+- **High Performance** - Optimized for speed and throughput
+- **Secure** - Built-in encryption and access controls
+- **Scalable** - From single files to petabytes of data
+
+## Connection Details
+
+When storage service is running:
+
+- **API Endpoint**: `http://localhost:9000`
+- **Console UI**: `http://localhost:9001`
+- **Access Key**: `minioadmin`
+- **Secret Key**: `minioadmin`
+- **Region**: `us-east-1` (default)
+
+### S3-Compatible Endpoint
+```
+http://localhost:9000
+```
+
+## Getting Started
+
+### Start Storage Service
+
+```bash
+# Start all services (including storage)
+lc start
+
+# Start only storage service
+lc start storage
+
+# Check storage status
+lc status storage
+```
+
+### Access MinIO Console
+
+Open your browser and navigate to:
+```
+http://localhost:9001
+```
+
+Login with:
+- **Username**: `minioadmin`
+- **Password**: `minioadmin`
+
+## Basic Operations
+
+### Create Bucket
+
+```bash
+# Using MinIO CLI (mc)
+mc alias set local http://localhost:9000 minioadmin minioadmin
+mc mb local/my-bucket
+
+# Using LocalCloud CLI
+lc storage create-bucket my-bucket
+```
+
+### Upload Files
+
+```bash
+# Upload single file
+mc cp file.pdf local/my-bucket/
+
+# Upload directory
+mc cp --recursive ./documents/ local/my-bucket/docs/
+
+# Using LocalCloud CLI
+lc storage upload file.pdf my-bucket
+lc storage upload ./documents/ my-bucket/docs/
+```
+
+### Download Files
+
+```bash
+# Download single file
+mc cp local/my-bucket/file.pdf ./downloads/
+
+# Download directory
+mc cp --recursive local/my-bucket/docs/ ./downloads/
+
+# Using LocalCloud CLI
+lc storage download my-bucket/file.pdf ./downloads/
+```
+
+## SDK Integration
+
+### Python with boto3
+
+```python
+import boto3
+from botocore.client import Config
+
+# Configure S3 client for MinIO
+s3_client = boto3.client(
+    's3',
+    endpoint_url='http://localhost:9000',
+    aws_access_key_id='minioadmin',
+    aws_secret_access_key='minioadmin',
+    config=Config(signature_version='s3v4'),
+    region_name='us-east-1'
+)
+
+# Create bucket
+def create_bucket(bucket_name):
+    try:
+        s3_client.create_bucket(Bucket=bucket_name)
+        print(f"Bucket '{bucket_name}' created successfully")
+    except Exception as e:
+        print(f"Error creating bucket: {e}")
+
+# Upload file
+def upload_file(file_path, bucket_name, object_name=None):
+    if object_name is None:
+        object_name = file_path.split('/')[-1]
+    
+    try:
+        s3_client.upload_file(file_path, bucket_name, object_name)
+        print(f"File '{file_path}' uploaded as '{object_name}'")
+    except Exception as e:
+        print(f"Error uploading file: {e}")
+
+# Download file
+def download_file(bucket_name, object_name, file_path):
+    try:
+        s3_client.download_file(bucket_name, object_name, file_path)
+        print(f"File '{object_name}' downloaded to '{file_path}'")
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+
+# Generate presigned URL (for direct access)
+def generate_presigned_url(bucket_name, object_name, expiration=3600):
+    try:
+        url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': object_name},
+            ExpiresIn=expiration
+        )
+        return url
+    except Exception as e:
+        print(f"Error generating presigned URL: {e}")
+        return None
+
+# Example usage
+create_bucket('documents')
+upload_file('./resume.pdf', 'documents', 'resumes/john_doe.pdf')
+download_file('documents', 'resumes/john_doe.pdf', './downloaded_resume.pdf')
+url = generate_presigned_url('documents', 'resumes/john_doe.pdf')
+print(f"Shareable URL: {url}")
+```
+
+### Node.js with AWS SDK
+
+```javascript
+const AWS = require('aws-sdk');
+const fs = require('fs');
+
+// Configure AWS SDK for MinIO
+const s3 = new AWS.S3({
+    endpoint: 'http://localhost:9000',
+    accessKeyId: 'minioadmin',
+    secretAccessKey: 'minioadmin',
+    s3ForcePathStyle: true,
+    signatureVersion: 'v4'
+});
+
+// Upload file
+async function uploadFile(bucketName, filePath, key) {
+    const fileContent = fs.readFileSync(filePath);
+    
+    const params = {
+        Bucket: bucketName,
+        Key: key,
+        Body: fileContent,
+        ContentType: 'application/octet-stream'
+    };
+    
+    try {
+        const result = await s3.upload(params).promise();
+        console.log(`File uploaded successfully: ${result.Location}`);
+        return result;
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        throw error;
+    }
+}
+
+// Download file
+async function downloadFile(bucketName, key, downloadPath) {
+    const params = {
+        Bucket: bucketName,
+        Key: key
+    };
+    
+    try {
+        const data = await s3.getObject(params).promise();
+        fs.writeFileSync(downloadPath, data.Body);
+        console.log(`File downloaded to: ${downloadPath}`);
+    } catch (error) {
+        console.error('Error downloading file:', error);
+        throw error;
+    }
+}
+
+// List objects in bucket
+async function listObjects(bucketName, prefix = '') {
+    const params = {
+        Bucket: bucketName,
+        Prefix: prefix
+    };
+    
+    try {
+        const data = await s3.listObjectsV2(params).promise();
+        return data.Contents;
+    } catch (error) {
+        console.error('Error listing objects:', error);
+        throw error;
+    }
+}
+
+// Generate presigned URL
+function generatePresignedUrl(bucketName, key, expires = 3600) {
+    const params = {
+        Bucket: bucketName,
+        Key: key,
+        Expires: expires
+    };
+    
+    return s3.getSignedUrl('getObject', params);
+}
+
+// Example usage
+async function main() {
+    try {
+        await uploadFile('images', './photo.jpg', 'uploads/photo.jpg');
+        await downloadFile('images', 'uploads/photo.jpg', './downloaded_photo.jpg');
+        
+        const objects = await listObjects('images', 'uploads/');
+        console.log('Objects in bucket:', objects);
+        
+        const url = generatePresignedUrl('images', 'uploads/photo.jpg');
+        console.log('Presigned URL:', url);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+main();
+```
+
+### Go with MinIO Go SDK
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "time"
+
+    "github.com/minio/minio-go/v7"
+    "github.com/minio/minio-go/v7/pkg/credentials"
+)
+
+func main() {
+    // Initialize MinIO client
+    minioClient, err := minio.New("localhost:9000", &minio.Options{
+        Creds:  credentials.NewStaticV4("minioadmin", "minioadmin", ""),
+        Secure: false,
+    })
+    if err != nil {
+        log.Fatalln(err)
+    }
+
+    // Create bucket
+    ctx := context.Background()
+    bucketName := "documents"
+    
+    err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+    if err != nil {
+        // Check if bucket already exists
+        exists, errBucketExists := minioClient.BucketExists(ctx, bucketName)
+        if errBucketExists == nil && exists {
+            fmt.Printf("Bucket %s already exists\n", bucketName)
+        } else {
+            log.Fatalln(err)
+        }
+    }
+
+    // Upload file
+    objectName := "my-document.pdf"
+    filePath := "./document.pdf"
+    contentType := "application/pdf"
+
+    info, err := minioClient.FPutObject(ctx, bucketName, objectName, filePath, minio.PutObjectOptions{
+        ContentType: contentType,
+    })
+    if err != nil {
+        log.Fatalln(err)
+    }
+
+    fmt.Printf("Successfully uploaded %s of size %d\n", objectName, info.Size)
+
+    // Generate presigned URL
+    presignedURL, err := minioClient.PresignedGetObject(ctx, bucketName, objectName, time.Hour, nil)
+    if err != nil {
+        log.Fatalln(err)
+    }
+    fmt.Printf("Presigned URL: %s\n", presignedURL)
+}
+```
+
+## Common Use Cases
+
+### File Upload Service
+
+```python
+from flask import Flask, request, jsonify
+import boto3
+from werkzeug.utils import secure_filename
+import uuid
+
+app = Flask(__name__)
+
+# Configure S3 client
+s3_client = boto3.client(
+    's3',
+    endpoint_url='http://localhost:9000',
+    aws_access_key_id='minioadmin',
+    aws_secret_access_key='minioadmin'
+)
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    # Generate unique filename
+    filename = secure_filename(file.filename)
+    unique_filename = f"{uuid.uuid4()}_{filename}"
+    
+    try:
+        # Upload to MinIO
+        s3_client.upload_fileobj(
+            file,
+            'uploads',
+            unique_filename,
+            ExtraArgs={'ContentType': file.content_type}
+        )
+        
+        # Generate access URL
+        url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': 'uploads', 'Key': unique_filename},
+            ExpiresIn=3600
+        )
+        
+        return jsonify({
+            'message': 'File uploaded successfully',
+            'filename': unique_filename,
+            'url': url
+        })
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+```
+
+### Image Processing Pipeline
+
+```python
+import requests
+from PIL import Image
+import io
+
+def process_and_store_image(image_url, bucket_name):
+    # Download image
+    response = requests.get(image_url)
+    image = Image.open(io.BytesIO(response.content))
+    
+    # Create different sizes
+    sizes = {
+        'thumbnail': (150, 150),
+        'medium': (500, 500),
+        'large': (1200, 1200)
+    }
+    
+    for size_name, (width, height) in sizes.items():
+        # Resize image
+        resized = image.copy()
+        resized.thumbnail((width, height), Image.Resampling.LANCZOS)
+        
+        # Save to buffer
+        buffer = io.BytesIO()
+        resized.save(buffer, format='JPEG', quality=85)
+        buffer.seek(0)
+        
+        # Upload to MinIO
+        object_name = f"images/{size_name}/{uuid.uuid4()}.jpg"
+        s3_client.upload_fileobj(
+            buffer,
+            bucket_name,
+            object_name,
+            ExtraArgs={'ContentType': 'image/jpeg'}
+        )
+        
+        print(f"Uploaded {size_name} version: {object_name}")
+```
+
+### Document Storage with Metadata
+
+```python
+import json
+from datetime import datetime
+
+def store_document_with_metadata(file_path, bucket_name, metadata=None):
+    filename = file_path.split('/')[-1]
+    object_name = f"documents/{datetime.now().strftime('%Y/%m/%d')}/{filename}"
+    
+    # Prepare metadata
+    metadata = metadata or {}
+    metadata.update({
+        'upload_date': datetime.now().isoformat(),
+        'original_filename': filename,
+        'content_type': 'application/pdf'
+    })
+    
+    # Upload with metadata
+    with open(file_path, 'rb') as file:
+        s3_client.upload_fileobj(
+            file,
+            bucket_name,
+            object_name,
+            ExtraArgs={
+                'Metadata': {k: str(v) for k, v in metadata.items()},
+                'ContentType': metadata['content_type']
+            }
+        )
+    
+    return object_name
+
+# Search documents by metadata
+def search_documents_by_date(bucket_name, date_prefix):
+    response = s3_client.list_objects_v2(
+        Bucket=bucket_name,
+        Prefix=f"documents/{date_prefix}"
+    )
+    
+    documents = []
+    for obj in response.get('Contents', []):
+        # Get object metadata
+        metadata_response = s3_client.head_object(
+            Bucket=bucket_name,
+            Key=obj['Key']
+        )
+        
+        documents.append({
+            'key': obj['Key'],
+            'size': obj['Size'],
+            'modified': obj['LastModified'],
+            'metadata': metadata_response.get('Metadata', {})
+        })
+    
+    return documents
+```
+
+## Bucket Policies and Security
+
+### Set Bucket Policy
+
+```python
+import json
+
+def set_public_read_policy(bucket_name):
+    policy = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": f"arn:aws:s3:::{bucket_name}/*"
+            }
+        ]
+    }
+    
+    s3_client.put_bucket_policy(
+        Bucket=bucket_name,
+        Policy=json.dumps(policy)
+    )
+
+def set_private_policy(bucket_name):
+    # Remove public access
+    try:
+        s3_client.delete_bucket_policy(Bucket=bucket_name)
+    except:
+        pass  # Policy might not exist
+```
+
+### Generate Temporary Access URLs
+
+```python
+def generate_upload_url(bucket_name, object_name, expiration=3600):
+    """Generate presigned URL for uploading files"""
+    return s3_client.generate_presigned_url(
+        'put_object',
+        Params={'Bucket': bucket_name, 'Key': object_name},
+        ExpiresIn=expiration
+    )
+
+def generate_download_url(bucket_name, object_name, expiration=3600):
+    """Generate presigned URL for downloading files"""
+    return s3_client.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': bucket_name, 'Key': object_name},
+        ExpiresIn=expiration
+    )
+```
+
+## Configuration
+
+Configure storage in `.localcloud/config.yaml`:
+
+```yaml
+services:
+  storage:
+    api_port: 9000
+    console_port: 9001
+    memory_limit: 1GB
+    minio:
+      access_key: minioadmin
+      secret_key: minioadmin
+      region: us-east-1
+      browser: true  # Enable web console
+```
+
+## Monitoring and Management
+
+### Using LocalCloud CLI
+
+```bash
+# Check storage status
+lc status storage
+
+# View storage logs
+lc logs storage
+
+# Get storage statistics
+lc storage stats
+
+# List all buckets
+lc storage buckets
+
+# List objects in bucket
+lc storage list my-bucket
+
+# Remove object
+lc storage remove my-bucket/file.pdf
+```
+
+### Storage Metrics
+
+```bash
+# Check disk usage
+lc storage usage
+
+# Monitor performance
+lc storage metrics
+
+# Backup bucket
+lc storage backup my-bucket ./backup/
+
+# Restore bucket
+lc storage restore ./backup/ my-bucket
+```
+
+## Best Practices
+
+### Organization
+
+```
+buckets/
+├── user-uploads/        # User-generated content
+│   ├── images/
+│   ├── documents/
+│   └── videos/
+├── app-assets/          # Application assets
+│   ├── static/
+│   └── templates/
+└── backups/             # System backups
+    ├── database/
+    └── logs/
+```
+
+### Naming Conventions
+
+```python
+# Good naming patterns
+def generate_object_key(file_type, user_id, filename):
+    date = datetime.now().strftime('%Y/%m/%d')
+    return f"{file_type}/{user_id}/{date}/{filename}"
+
+# Examples:
+# images/user123/2024/12/05/profile.jpg
+# documents/user456/2024/12/05/contract.pdf
+# backups/database/2024/12/05/backup.sql
+```
+
+### Error Handling
+
+```python
+from botocore.exceptions import ClientError
+
+def safe_upload(bucket_name, file_path, object_name):
+    try:
+        s3_client.upload_file(file_path, bucket_name, object_name)
+        return True
+    except FileNotFoundError:
+        print(f"File {file_path} not found")
+        return False
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code == 'NoSuchBucket':
+            print(f"Bucket {bucket_name} does not exist")
+        else:
+            print(f"Error uploading file: {e}")
+        return False
+```
+
+## Troubleshooting
+
+### Connection Issues
+
+```bash
+# Check if MinIO is running
+lc status storage
+
+# Restart storage service
+lc restart storage
+
+# Check MinIO logs
+lc logs storage
+```
+
+### Access Issues
+
+```bash
+# Verify credentials
+mc admin info local
+
+# Check bucket permissions
+mc stat local/my-bucket
+
+# Test connectivity
+curl http://localhost:9000/minio/health/live
+```
+
+### Performance Issues
+
+```bash
+# Monitor storage performance
+lc storage metrics --interval 5s
+
+# Check disk space
+lc storage usage
+
+# Optimize bucket structure
+lc storage analyze my-bucket
+```
+
+## Related Documentation
+
+- [Database](/services/postgresql) - Primary data storage
+- [Cache](/services/cache) - Fast data access
+- [CLI Storage Commands](/cli/storage) - Command-line storage operations
+
+## Integration Examples
+
+Storage works seamlessly with other LocalCloud services:
+
+```python
+# Store AI-generated content
+def store_ai_response(prompt, response):
+    # Store response as file
+    filename = f"ai_responses/{uuid.uuid4()}.txt"
+    
+    # Upload to storage
+    s3_client.put_object(
+        Bucket='ai-outputs',
+        Key=filename,
+        Body=response.encode('utf-8'),
+        Metadata={
+            'prompt': prompt[:100],  # First 100 chars
+            'model': 'llama3.2',
+            'timestamp': datetime.now().isoformat()
+        }
+    )
+    
+    return filename
+```
+
+This makes LocalCloud perfect for building applications that need reliable, scalable file storage alongside AI and database services.

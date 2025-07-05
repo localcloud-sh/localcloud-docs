@@ -1,0 +1,337 @@
+---
+title: 'PostgreSQL'
+description: 'Relational database with vector search capabilities'
+icon: 'database'
+---
+
+# PostgreSQL Database
+
+LocalCloud includes PostgreSQL, the world's most advanced open-source relational database, with optional pgvector extension for vector similarity search.
+
+## What's Included
+
+PostgreSQL in LocalCloud comes pre-configured with:
+- **PostgreSQL 16** - Latest stable version
+- **pgvector extension** - Vector similarity search (optional)
+- **pg_trgm extension** - Full-text search capabilities
+- **Default database** - `localcloud` with user `localcloud`
+
+## Connection Details
+
+When PostgreSQL is running in LocalCloud:
+
+- **Host**: `localhost`
+- **Port**: `5432`
+- **Database**: `localcloud`
+- **Username**: `localcloud`
+- **Password**: `localcloud`
+
+### Connection String
+```
+postgresql://localcloud:localcloud@localhost:5432/localcloud
+```
+
+## Getting Started
+
+### Start PostgreSQL
+
+```bash
+# Start all services (including PostgreSQL)
+lc start
+
+# Start only PostgreSQL
+lc start postgres
+```
+
+### Connect to Database
+
+```bash
+# Connect via LocalCloud CLI
+lc database connect
+
+# Or use psql directly
+psql postgresql://localcloud:localcloud@localhost:5432/localcloud
+```
+
+## Vector Search with pgvector
+
+### Enable Vector Extension
+
+```bash
+# Enable pgvector for similarity search
+lc vector enable
+```
+
+Or manually in SQL:
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+### Working with Vectors
+
+```sql
+-- Create table with vector column
+CREATE TABLE documents (
+    id SERIAL PRIMARY KEY,
+    title TEXT,
+    content TEXT,
+    embedding vector(384)  -- 384 dimensions for nomic-embed-text
+);
+
+-- Insert document with embedding
+INSERT INTO documents (title, content, embedding) VALUES (
+    'Sample Document',
+    'This is a sample document for testing.',
+    '[0.1, 0.2, 0.3, ...]'::vector
+);
+
+-- Search for similar documents (cosine distance)
+SELECT title, content, 
+       1 - (embedding <=> '[0.1, 0.2, 0.3, ...]'::vector) as similarity
+FROM documents 
+WHERE 1 - (embedding <=> '[0.1, 0.2, 0.3, ...]'::vector) > 0.8
+ORDER BY embedding <=> '[0.1, 0.2, 0.3, ...]'::vector 
+LIMIT 10;
+```
+
+## Common Use Cases
+
+### Relational Data Storage
+
+```sql
+-- User management
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Application data
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Full-Text Search
+
+```sql
+-- Enable text search
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- Create text search index
+CREATE INDEX posts_content_idx ON posts USING gin(content gin_trgm_ops);
+
+-- Search posts
+SELECT * FROM posts 
+WHERE content ILIKE '%search term%'
+ORDER BY similarity(content, 'search term') DESC;
+```
+
+### Knowledge Base with RAG
+
+```sql
+-- Table for document chunks
+CREATE TABLE knowledge_base (
+    id SERIAL PRIMARY KEY,
+    document_id VARCHAR(255),
+    chunk_index INTEGER,
+    content TEXT,
+    embedding vector(384),
+    metadata JSONB
+);
+
+-- Index for fast similarity search
+CREATE INDEX ON knowledge_base USING ivfflat (embedding vector_cosine_ops);
+
+-- Query knowledge base
+SELECT content, metadata,
+       1 - (embedding <=> $1::vector) as similarity
+FROM knowledge_base 
+WHERE 1 - (embedding <=> $1::vector) > 0.7
+ORDER BY embedding <=> $1::vector 
+LIMIT 5;
+```
+
+## Configuration
+
+Configure PostgreSQL in `.localcloud/config.yaml`:
+
+```yaml
+services:
+  database:
+    port: 5432
+    memory_limit: 1GB
+    extensions:
+      - pgvector  # Enable vector search
+      - pg_trgm   # Enable trigram search
+    postgres:
+      max_connections: 100
+      shared_buffers: 256MB
+```
+
+## Performance Tips
+
+### Indexing for Vector Search
+
+```sql
+-- IVFFlat index (good for most cases)
+CREATE INDEX embedding_idx ON documents 
+USING ivfflat (embedding vector_cosine_ops) 
+WITH (lists = 100);
+
+-- HNSW index (better recall, more memory)
+CREATE INDEX embedding_hnsw_idx ON documents 
+USING hnsw (embedding vector_cosine_ops) 
+WITH (m = 16, ef_construction = 64);
+```
+
+### Query Optimization
+
+```sql
+-- Use EXPLAIN to analyze queries
+EXPLAIN (ANALYZE, BUFFERS) 
+SELECT * FROM documents 
+WHERE embedding <=> '[...]'::vector < 0.5;
+
+-- Vacuum and analyze regularly
+VACUUM ANALYZE documents;
+```
+
+## Backup and Restore
+
+### Using LocalCloud CLI
+
+```bash
+# Backup database
+lc database backup my-backup.sql
+
+# Restore from backup
+lc database restore my-backup.sql
+```
+
+### Manual Backup
+
+```bash
+# Backup with pg_dump
+pg_dump postgresql://localcloud:localcloud@localhost:5432/localcloud > backup.sql
+
+# Restore with psql
+psql postgresql://localcloud:localcloud@localhost:5432/localcloud < backup.sql
+```
+
+## Integration Examples
+
+### Python with psycopg2
+
+```python
+import psycopg2
+import numpy as np
+
+# Connect to database
+conn = psycopg2.connect(
+    "postgresql://localcloud:localcloud@localhost:5432/localcloud"
+)
+cur = conn.cursor()
+
+# Insert vector data
+embedding = np.random.rand(384).tolist()
+cur.execute(
+    "INSERT INTO documents (title, embedding) VALUES (%s, %s)",
+    ("My Document", embedding)
+)
+
+# Search similar vectors
+query_embedding = np.random.rand(384).tolist()
+cur.execute("""
+    SELECT title, 1 - (embedding <=> %s::vector) as similarity
+    FROM documents 
+    ORDER BY embedding <=> %s::vector 
+    LIMIT 5
+""", (query_embedding, query_embedding))
+
+results = cur.fetchall()
+```
+
+### Node.js with pg
+
+```javascript
+const { Client } = require('pg');
+
+const client = new Client({
+    connectionString: 'postgresql://localcloud:localcloud@localhost:5432/localcloud'
+});
+
+await client.connect();
+
+// Insert document with embedding
+const embedding = Array.from({length: 384}, () => Math.random());
+await client.query(
+    'INSERT INTO documents (title, embedding) VALUES ($1, $2)',
+    ['My Document', `[${embedding.join(',')}]`]
+);
+
+// Search similar documents
+const queryEmbedding = Array.from({length: 384}, () => Math.random());
+const result = await client.query(`
+    SELECT title, 1 - (embedding <=> $1::vector) as similarity
+    FROM documents 
+    ORDER BY embedding <=> $1::vector 
+    LIMIT 5
+`, [`[${queryEmbedding.join(',')}]`]);
+```
+
+## Troubleshooting
+
+### Connection Issues
+
+```bash
+# Check if PostgreSQL is running
+lc status postgres
+
+# View PostgreSQL logs
+lc logs postgres
+
+# Restart PostgreSQL
+lc restart postgres
+```
+
+### Performance Issues
+
+```bash
+# Check database size
+lc database stats
+
+# Analyze slow queries
+# Enable log_statement = 'all' in postgresql.conf
+lc logs postgres | grep "duration:"
+```
+
+### Vector Search Issues
+
+```sql
+-- Check if pgvector is installed
+SELECT * FROM pg_extension WHERE extname = 'vector';
+
+-- Check vector dimensions
+SELECT avg(array_length(embedding, 1)) FROM documents;
+
+-- Rebuild vector index if needed
+REINDEX INDEX embedding_idx;
+```
+
+## Related Documentation
+
+- [Vector Commands](/cli/vector) - CLI commands for vector operations
+- [Database Commands](/cli/database) - CLI commands for database management
+- [MongoDB](/services/mongodb) - NoSQL document database option
+
+## Additional Resources
+
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [pgvector Documentation](https://github.com/pgvector/pgvector)
+- [Vector Database Best Practices](https://www.postgresql.org/docs/current/sql-createindex.html)

@@ -1,0 +1,416 @@
+---
+title: 'Cache (Redis)'
+description: 'In-memory caching for high-performance applications'
+icon: 'bolt'
+---
+
+# Cache Service (Redis)
+
+LocalCloud includes Redis configured as a caching layer to dramatically improve application performance by storing frequently accessed data in memory.
+
+## What is Redis Cache?
+
+Redis is an in-memory data structure store used as a cache in LocalCloud. It provides:
+- **Sub-millisecond latency** - Extremely fast data access
+- **Multiple data types** - Strings, hashes, lists, sets, sorted sets
+- **Atomic operations** - Thread-safe operations
+- **TTL support** - Automatic expiration of cached data
+
+## Connection Details
+
+When the cache service is running:
+
+- **Host**: `localhost`
+- **Port**: `6379`
+- **Database**: `0` (default)
+- **Password**: None (local development)
+
+### Connection String
+```
+redis://localhost:6379
+```
+
+## Getting Started
+
+### Start Cache Service
+
+```bash
+# Start all services (including cache)
+lc start
+
+# Start only cache service
+lc start cache
+
+# Check cache status
+lc status cache
+```
+
+### Connect to Redis
+
+```bash
+# Connect via redis-cli (if installed)
+redis-cli -h localhost -p 6379
+
+# Or connect through LocalCloud
+lc redis connect
+```
+
+## Common Cache Patterns
+
+### Basic Key-Value Caching
+
+```redis
+# Set a cached value with TTL (Time To Live)
+SET user:123 "{"name":"John","email":"john@example.com"}" EX 3600
+
+# Get cached value
+GET user:123
+
+# Delete cached value
+DEL user:123
+
+# Check if key exists
+EXISTS user:123
+```
+
+### Session Storage
+
+```redis
+# Store user session (expires in 24 hours)
+SETEX session:abc123 86400 "{"userId":123,"role":"user"}"
+
+# Get session data
+GET session:abc123
+
+# Update session expiry
+EXPIRE session:abc123 86400
+```
+
+### Counters and Rate Limiting
+
+```redis
+# Increment counter
+INCR page_views:home
+INCRBY downloads:app 5
+
+# Rate limiting (allow 100 requests per hour)
+SET rate_limit:user:123 1 EX 3600
+INCR rate_limit:user:123
+```
+
+### Lists for Recent Items
+
+```redis
+# Add recent activity (keep last 10 items)
+LPUSH recent_posts:user:123 "post_456"
+LTRIM recent_posts:user:123 0 9
+
+# Get recent items
+LRANGE recent_posts:user:123 0 -1
+```
+
+## Application Integration
+
+### Python with redis-py
+
+```python
+import redis
+import json
+from datetime import timedelta
+
+# Connect to Redis
+r = redis.Redis(host='localhost', port=6379, db=0)
+
+# Cache user data
+def get_user(user_id):
+    cache_key = f"user:{user_id}"
+    
+    # Try to get from cache first
+    cached_user = r.get(cache_key)
+    if cached_user:
+        return json.loads(cached_user)
+    
+    # If not in cache, get from database
+    user = fetch_user_from_database(user_id)
+    
+    # Cache for 1 hour
+    r.setex(cache_key, timedelta(hours=1), json.dumps(user))
+    
+    return user
+
+# Session management
+def set_session(session_id, user_data):
+    r.setex(f"session:{session_id}", timedelta(days=1), json.dumps(user_data))
+
+def get_session(session_id):
+    session_data = r.get(f"session:{session_id}")
+    return json.loads(session_data) if session_data else None
+```
+
+### Node.js with ioredis
+
+```javascript
+const Redis = require('ioredis');
+
+const redis = new Redis({
+    host: 'localhost',
+    port: 6379,
+    retryDelayOnFailover: 100
+});
+
+// Cache API responses
+async function cacheApiResponse(endpoint, data, ttl = 3600) {
+    await redis.setex(`api:${endpoint}`, ttl, JSON.stringify(data));
+}
+
+async function getCachedResponse(endpoint) {
+    const cached = await redis.get(`api:${endpoint}`);
+    return cached ? JSON.parse(cached) : null;
+}
+
+// Rate limiting middleware
+async function rateLimitMiddleware(userId, limit = 100, window = 3600) {
+    const key = `rate_limit:${userId}`;
+    const current = await redis.incr(key);
+    
+    if (current === 1) {
+        await redis.expire(key, window);
+    }
+    
+    return current <= limit;
+}
+```
+
+### Go with go-redis
+
+```go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "time"
+    "github.com/go-redis/redis/v8"
+)
+
+var ctx = context.Background()
+
+func main() {
+    rdb := redis.NewClient(&redis.Options{
+        Addr: "localhost:6379",
+        DB:   0,
+    })
+
+    // Cache struct data
+    type User struct {
+        ID   int    `json:"id"`
+        Name string `json:"name"`
+    }
+
+    user := User{ID: 123, Name: "John"}
+    
+    // Serialize and cache
+    userData, _ := json.Marshal(user)
+    rdb.Set(ctx, "user:123", userData, time.Hour)
+
+    // Retrieve and deserialize
+    val, err := rdb.Get(ctx, "user:123").Result()
+    if err == nil {
+        var cachedUser User
+        json.Unmarshal([]byte(val), &cachedUser)
+    }
+}
+```
+
+## Cache Strategies
+
+### Cache-Aside (Lazy Loading)
+
+```python
+def get_product(product_id):
+    # 1. Check cache first
+    cache_key = f"product:{product_id}"
+    product = r.get(cache_key)
+    
+    if product:
+        return json.loads(product)
+    
+    # 2. Cache miss - get from database
+    product = db.get_product(product_id)
+    
+    # 3. Store in cache for next time
+    if product:
+        r.setex(cache_key, 3600, json.dumps(product))
+    
+    return product
+```
+
+### Write-Through Cache
+
+```python
+def update_product(product_id, product_data):
+    # 1. Update database
+    db.update_product(product_id, product_data)
+    
+    # 2. Update cache immediately
+    cache_key = f"product:{product_id}"
+    r.setex(cache_key, 3600, json.dumps(product_data))
+```
+
+### Cache Invalidation
+
+```python
+def invalidate_user_cache(user_id):
+    # Remove specific user data
+    r.delete(f"user:{user_id}")
+    
+    # Remove related cached data
+    r.delete(f"user_posts:{user_id}")
+    r.delete(f"user_profile:{user_id}")
+
+def invalidate_pattern(pattern):
+    # Remove all keys matching pattern
+    keys = r.keys(pattern)
+    if keys:
+        r.delete(*keys)
+```
+
+## Monitoring and Debugging
+
+### Check Cache Stats
+
+```redis
+# Get Redis info
+INFO memory
+INFO stats
+
+# Monitor commands in real-time
+MONITOR
+
+# Get slow queries
+SLOWLOG GET 10
+```
+
+### Using LocalCloud CLI
+
+```bash
+# View cache logs
+lc logs cache
+
+# Get cache information
+lc redis info
+
+# Connect to Redis CLI
+lc redis connect
+```
+
+## Configuration
+
+Configure cache in `.localcloud/config.yaml`:
+
+```yaml
+services:
+  cache:
+    port: 6379
+    memory_limit: 256MB
+    redis:
+      maxmemory_policy: "allkeys-lru"  # Eviction policy
+      save: "900 1 300 10 60 10000"    # Persistence settings
+      databases: 16                     # Number of databases
+```
+
+## Performance Tips
+
+### Memory Optimization
+
+```redis
+# Use appropriate data types
+# Hash for objects with many fields
+HSET user:123 name "John" email "john@example.com" age 30
+
+# Use compression for large values
+# Consider msgpack or similar
+
+# Set appropriate TTLs
+SET large_data:123 "..." EX 1800  # 30 minutes
+```
+
+### Connection Pooling
+
+```python
+import redis
+
+# Use connection pooling
+pool = redis.ConnectionPool(
+    host='localhost', 
+    port=6379, 
+    max_connections=10
+)
+r = redis.Redis(connection_pool=pool)
+```
+
+## Common Use Cases
+
+### Web Application Caching
+
+- **Page fragments** - Cache rendered HTML components
+- **API responses** - Cache database query results  
+- **User sessions** - Store authentication state
+- **Shopping carts** - Temporary user data
+
+### AI Application Caching
+
+- **Model outputs** - Cache LLM responses for repeated queries
+- **Embeddings** - Cache vector embeddings for documents
+- **Feature vectors** - Cache computed features
+- **Rate limiting** - Control API usage per user
+
+### Real-time Applications
+
+- **Leaderboards** - Sorted sets for rankings
+- **Chat messages** - Lists for message history
+- **Notifications** - Queues for real-time updates
+- **Analytics** - Counters for metrics
+
+## Troubleshooting
+
+### Memory Issues
+
+```bash
+# Check memory usage
+lc redis info memory
+
+# Clear all cache data
+lc redis flushall
+
+# Check cache hit ratio
+lc redis info stats | grep hit_rate
+```
+
+### Connection Issues
+
+```bash
+# Check if Redis is running
+lc status cache
+
+# Restart cache service
+lc restart cache
+
+# View cache logs
+lc logs cache
+```
+
+## Related Documentation
+
+- [Queue Service](/services/queue) - Redis-based job queues
+- [CLI Redis Commands](/cli/redis) - Command-line Redis operations
+- [Database](/services/postgresql) - Primary data storage
+
+## Best Practices
+
+1. **Set appropriate TTLs** - Prevent cache from growing indefinitely
+2. **Use consistent naming** - Organize keys with prefixes
+3. **Monitor memory usage** - Avoid running out of memory
+4. **Handle cache misses gracefully** - Always have fallback to database
+5. **Consider cache warming** - Pre-load frequently accessed data
+6. **Use transactions when needed** - MULTI/EXEC for atomic operations

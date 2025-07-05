@@ -33,10 +33,11 @@
             "group": "Using Services",
             "pages": [
               "services/ollama",
-              "services/postgresql",
+              "services/postgresql", 
               "services/mongodb",
-              "services/redis",
-              "services/minio"
+              "services/cache",
+              "services/queue",
+              "services/storage"
             ]
           },
           {
