@@ -191,19 +191,6 @@
           }
         ]
       }
-      // {
-      //   "tab": "Examples",
-      //   "groups": [
-      //     {
-      //       "group": "Templates",
-      //       "pages": [
-      //         "examples/ai-chat",
-      //         "examples/database",
-      //         "examples/storage"
-      //       ]
-      //     }
-      //   ]
-      // }
     ],
     "global": {
       "anchors": [
