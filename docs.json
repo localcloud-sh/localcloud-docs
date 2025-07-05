@@ -83,12 +83,13 @@
             ]
           },
           {
-            "group": "Basic Commands",
+            "group": "Project Management",
             "pages": [
               "cli/setup",
               "cli/start",
               "cli/stop",
-              "cli/status"
+              "cli/status",
+              "cli/reset"
             ]
           },
           {
@@ -101,11 +102,30 @@
             ]
           },
           {
-            "group": "Database Management",
+            "group": "Database Commands",
             "pages": [
-              "cli/mongo",
               "cli/database",
-              "cli/vector"
+              "cli/vector",
+              "cli/mongo"
+            ]
+          },
+          {
+            "group": "AI & Models",
+            "pages": [
+              "cli/models"
+            ]
+          },
+          {
+            "group": "Cache & Queue",
+            "pages": [
+              "cli/cache",
+              "cli/queue"
+            ]
+          },
+          {
+            "group": "Storage & Files",
+            "pages": [
+              "cli/storage"
             ]
           },
           {
@@ -115,24 +135,17 @@
             ]
           },
           {
-            "group": "AI Models",
-            "pages": [
-              "cli/models"
-            ]
-          },
-          {
             "group": "Configuration",
             "pages": [
-              "cli/config"
+              "cli/config",
+              "cli/export"
             ]
           },
           {
-            "group": "Utilities",
+            "group": "System Utilities",
             "pages": [
               "cli/info",
-              "cli/doctor",
-              "cli/reset",
-              "cli/export"
+              "cli/doctor"
             ]
           }
         ]
