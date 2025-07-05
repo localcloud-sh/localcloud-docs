@@ -33,6 +33,7 @@
             "pages": [
               "services/ollama",
               "services/postgresql",
+              "services/mongodb",
               "services/redis",
               "services/minio"
             ]
@@ -65,7 +66,6 @@
           {
             "group": "Basic Commands",
             "pages": [
-              "cli/init",
               "cli/setup",
               "cli/start",
               "cli/stop",
@@ -79,6 +79,18 @@
               "cli/logs",
               "cli/ps",
               "cli/component"
+            ]
+          },
+          {
+            "group": "Database Management",
+            "pages": [
+              "cli/mongo"
+            ]
+          },
+          {
+            "group": "Networking",
+            "pages": [
+              "cli/tunnel"
             ]
           },
           {

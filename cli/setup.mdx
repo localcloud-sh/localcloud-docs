@@ -41,9 +41,13 @@ lc setup
 
 This launches the same interactive wizard as `lc init --interactive`, allowing you to:
 - Select project type
-- Choose components
+- Choose components (Database, Vector Database, Cache, Storage)
 - Pick AI models
 - Configure services
+
+<Note>
+    Vector Database is presented as a separate option in the setup wizard, but uses the same PostgreSQL instance with pgvector extension for optimal performance.
+</Note>
 
 <Note>
     The project must already be initialized with `lc init` before running `lc setup` without arguments.

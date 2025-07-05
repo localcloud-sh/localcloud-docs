@@ -17,6 +17,9 @@ LocalCloud provides a suite of integrated services that work together to create 
     <Card title="PostgreSQL" icon="database" color="#3b82f6">
         Full-featured relational database with vector extensions
     </Card>
+    <Card title="MongoDB" icon="leaf" color="#00ed64">
+        NoSQL document database for flexible data storage
+    </Card>
     <Card title="Redis" icon="bolt" color="#ef4444">
         High-performance caching and message queuing
     </Card>
@@ -36,28 +39,31 @@ graph TB
     subgraph "LocalCloud Services"
         B[Ollama<br/>Port: 11434]
         C[PostgreSQL<br/>Port: 5432]
-        D[Redis<br/>Port: 6379]
-        E[MinIO<br/>Port: 9000/9001]
+        D[MongoDB<br/>Port: 27017]
+        E[Redis<br/>Port: 6379]
+        F[MinIO<br/>Port: 9000/9001]
     end
 
     subgraph "Docker Engine"
-        F[Container Management]
-        G[Network: localcloud_default]
-        H[Volumes: Data Persistence]
+        G[Container Management]
+        H[Network: localcloud_default]
+        I[Volumes: Data Persistence]
     end
 
     A --> B
     A --> C
     A --> D
     A --> E
+    A --> F
 
-    B --> F
-    C --> F
-    D --> F
-    E --> F
-
+    B --> G
+    C --> G
+    D --> G
+    E --> G
     F --> G
-    F --> H
+
+    G --> H
+    G --> I
 
     style A fill:#10b981,color:#fff
     style B fill:#8b5cf6,color:#fff

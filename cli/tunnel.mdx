@@ -1,0 +1,419 @@
+---
+title: 'lc tunnel'
+description: 'Create secure tunnels to expose local services publicly'
+icon: 'tunnel'
+---
+
+# lc tunnel
+
+Create secure tunnels to expose your local services to the internet. Perfect for sharing demos, webhooks, and collaborative development.
+
+## Usage
+
+```bash
+lc tunnel <command> [flags]
+```
+
+## Commands
+
+### `lc tunnel start`
+
+Start a tunnel to expose local services publicly.
+
+```bash
+# Tunnel specific services
+lc tunnel start --api --db --storage
+
+# Tunnel custom services
+lc tunnel start --service api:3000 --service docs:8080
+
+# Auto-detect and tunnel all running services
+lc tunnel start --auto-detect
+
+# Use specific tunnel provider
+lc tunnel start --provider cloudflare --api
+
+# Tunnel with custom domain (requires setup)
+lc tunnel start --domain myapp.example.com --api
+```
+
+**Flags:**
+- `--api` - Expose API service
+- `--db` - Expose database service
+- `--storage` - Expose storage service (MinIO)
+- `--service <name:port>` - Expose custom service
+- `--auto-detect` - Auto-detect running services
+- `--provider <name>` - Tunnel provider (cloudflare, ngrok)
+- `--domain <domain>` - Custom domain (if configured)
+- `--subdomain <name>` - Custom subdomain
+- `--auth <user:pass>` - Basic authentication
+
+### `lc tunnel stop`
+
+Stop running tunnels.
+
+```bash
+# Stop all tunnels
+lc tunnel stop
+
+# Stop specific tunnel
+lc tunnel stop --name api-tunnel
+```
+
+### `lc tunnel list`
+
+List active tunnels.
+
+```bash
+lc tunnel list
+```
+
+### `lc tunnel status`
+
+Show tunnel status and URLs.
+
+```bash
+lc tunnel status
+```
+
+## Tunnel Providers
+
+### Cloudflare Tunnel (Recommended)
+
+**Features:**
+- Completely free
+- No account required for quick tunnels
+- Stable URLs with free account
+- Built-in DDoS protection
+- Global CDN
+
+**Setup:**
+```bash
+# Install cloudflared (if not already installed)
+# macOS
+brew install cloudflared
+
+# Linux
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+sudo dpkg -i cloudflared.deb
+
+# Start tunnel
+lc tunnel start --provider cloudflare --api
+```
+
+### Ngrok
+
+**Features:**
+- Easy setup
+- Good documentation
+- Stable service
+
+**Setup:**
+```bash
+# Get auth token from ngrok.com
+export NGROK_AUTH_TOKEN=your_token_here
+
+# Start tunnel
+lc tunnel start --provider ngrok --api
+```
+
+## Multi-Service Tunneling
+
+LocalCloud supports tunneling multiple services through a single tunnel with intelligent routing:
+
+### Path-Based Routing
+
+```bash
+# Start multi-service tunnel
+lc tunnel start --api --db --storage
+
+# Services are accessible via:
+# https://abc123.trycloudflare.com/         - Landing page
+# https://abc123.trycloudflare.com/api/    - API service
+# https://abc123.trycloudflare.com/db/     - Database admin
+# https://abc123.trycloudflare.com/storage/ - Storage console
+```
+
+### Custom Services
+
+```bash
+# Tunnel custom services
+lc tunnel start --service frontend:3000 --service backend:8080 --service docs:4000
+
+# Accessible via:
+# https://abc123.trycloudflare.com/frontend/
+# https://abc123.trycloudflare.com/backend/
+# https://abc123.trycloudflare.com/docs/
+```
+
+### Auto-Detection
+
+```bash
+# Automatically detect and tunnel all running services
+lc tunnel start --auto-detect
+
+# LocalCloud will scan for:
+# - HTTP services on common ports
+# - LocalCloud services (API, DB, Storage)
+# - Custom services defined in config
+```
+
+## Service Dashboard
+
+When tunneling multiple services, LocalCloud provides a dashboard at the root URL:
+
+```
+https://your-tunnel-url.com/
+
+Services Available:
+┌─────────────────────────────────────────────────┐
+│ LocalCloud Services                             │
+├─────────────────────────────────────────────────┤
+│ 🚀 API Service        /api/       [Running]     │
+│ 🗄️  Database Admin    /db/        [Running]     │
+│ 📦 Storage Console    /storage/   [Running]     │
+│ 📄 Documentation     /docs/      [Running]     │
+└─────────────────────────────────────────────────┘
+```
+
+## Authentication
+
+Protect your tunnels with basic authentication:
+
+```bash
+# Add basic auth to tunnel
+lc tunnel start --api --auth admin:secret123
+
+# Access requires username/password
+# Username: admin
+# Password: secret123
+```
+
+## Advanced Configuration
+
+### Custom Domains
+
+For stable URLs, configure custom domains:
+
+```bash
+# Cloudflare (requires domain setup)
+lc tunnel start --provider cloudflare --domain api.myapp.com --api
+
+# Create named tunnel for persistence
+lc tunnel start --provider cloudflare --name myapp-tunnel --domain api.myapp.com --api
+```
+
+### Environment-Specific Tunnels
+
+```bash
+# Development tunnel
+lc tunnel start --api --subdomain dev-myapp
+
+# Staging tunnel  
+lc tunnel start --api --subdomain staging-myapp
+
+# Demo tunnel with auth
+lc tunnel start --api --subdomain demo-myapp --auth demo:password
+```
+
+## Use Cases
+
+### Development & Testing
+
+```bash
+# Share API for frontend testing
+lc tunnel start --api
+
+# Share full stack for demo
+lc tunnel start --api --storage --service frontend:3000
+```
+
+### Webhooks
+
+```bash
+# Expose API for webhook testing
+lc tunnel start --api --subdomain webhook-test
+
+# Use tunnel URL in webhook configuration
+# https://webhook-test.trycloudflare.com/api/webhooks
+```
+
+### Collaborative Development
+
+```bash
+# Share development environment
+lc tunnel start --auto-detect --auth team:password
+
+# Team members can access:
+# - API for testing
+# - Database for queries
+# - Storage for files
+```
+
+### Mobile App Development
+
+```bash
+# Tunnel API for mobile testing
+lc tunnel start --api --subdomain mobile-api
+
+# Use tunnel URL in mobile app
+# https://mobile-api.trycloudflare.com/api/
+```
+
+## Health Checks
+
+LocalCloud automatically adds health checks to tunneled services:
+
+```bash
+# Check service health
+curl https://your-tunnel-url.com/api/health
+
+# Response:
+{
+  "status": "healthy",
+  "service": "api",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "uptime": "2h 15m"
+}
+```
+
+## Security Considerations
+
+### Best Practices
+
+1. **Use Authentication**: Always add auth for sensitive services
+2. **Temporary Tunnels**: Use tunnels for development/testing only
+3. **Monitor Access**: Check tunnel logs regularly
+4. **Rotate Credentials**: Change auth passwords frequently
+
+### Example Secure Setup
+
+```bash
+# Secure tunnel with auth and limited services
+lc tunnel start --api --auth "$(openssl rand -base64 12):$(openssl rand -base64 12)"
+
+# Monitor tunnel access
+lc tunnel logs --follow
+```
+
+## Troubleshooting
+
+### Tunnel Connection Issues
+
+```bash
+Error: failed to connect to tunnel provider
+```
+**Solutions:**
+- Check internet connection
+- Verify tunnel provider is available
+- Try different provider: `--provider ngrok`
+
+### Service Not Accessible
+
+```bash
+Error: service not reachable through tunnel
+```
+**Solutions:**
+- Verify service is running: `lc status`
+- Check service port is correct
+- Ensure no firewall blocking connection
+
+### Authentication Required
+
+```bash
+Error: NGROK_AUTH_TOKEN not set
+```
+**Solutions:**
+- Get token from ngrok.com
+- Set environment variable: `export NGROK_AUTH_TOKEN=your_token`
+- Use Cloudflare instead: `--provider cloudflare`
+
+## Configuration Examples
+
+### Development Team Setup
+
+```yaml
+# .localcloud/tunnel.yaml
+tunnels:
+  dev:
+    provider: cloudflare
+    services:
+      - api:3001
+      - frontend:3000
+    auth: dev:devpass123
+    
+  staging:
+    provider: cloudflare
+    domain: staging.myapp.com
+    services:
+      - api:3001
+    auth: staging:stagepass456
+```
+
+### Webhook Testing
+
+```yaml
+# .localcloud/tunnel.yaml
+tunnels:
+  webhooks:
+    provider: cloudflare
+    subdomain: webhook-test
+    services:
+      - api:3001
+    persistent: true
+```
+
+## Examples
+
+### Basic API Tunnel
+
+```bash
+# Start API service
+lc start api
+
+# Create tunnel
+lc tunnel start --api
+
+# Output:
+# 🚀 Tunnel created successfully!
+# 
+# API Service: https://abc123.trycloudflare.com/api/
+# Dashboard:   https://abc123.trycloudflare.com/
+#
+# Press Ctrl+C to stop tunnel
+```
+
+### Multi-Service Demo
+
+```bash
+# Start all services
+lc start
+
+# Create comprehensive tunnel
+lc tunnel start --auto-detect --auth demo:password
+
+# Share URL with team:
+# https://demo123.trycloudflare.com/
+# Username: demo
+# Password: password
+```
+
+### Mobile Development
+
+```bash
+# Start API for mobile app
+lc start api
+
+# Create stable tunnel
+lc tunnel start --api --subdomain myapp-mobile
+
+# Use in mobile app:
+# Base URL: https://myapp-mobile.trycloudflare.com/api/
+```
+
+## Related Commands
+
+- [`lc start`](/cli/start) - Start services before tunneling
+- [`lc status`](/cli/status) - Check service status
+- [`lc logs`](/cli/logs) - View service logs
+- [`lc stop`](/cli/stop) - Stop services and tunnels

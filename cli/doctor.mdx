@@ -1,0 +1,458 @@
+---
+title: 'lc doctor'
+description: 'Diagnose and fix common LocalCloud issues'
+icon: 'stethoscope'
+---
+
+# lc doctor
+
+Diagnose system health, detect common issues, and provide solutions for LocalCloud setup and operation problems.
+
+## Usage
+
+```bash
+lc doctor [flags]
+```
+
+## Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--fix` | Attempt to automatically fix detected issues | `false` |
+
+## What Doctor Checks
+
+### System Requirements
+
+#### Docker Installation
+-  Docker daemon is running
+-  Docker version compatibility (20.10+)
+-  Docker API accessibility
+-  Container runtime availability
+
+#### System Resources
+-  Available memory (minimum 8GB recommended)
+-  Available disk space (minimum 20GB)
+-  CPU cores and architecture
+-  Operating system compatibility
+
+#### Network Configuration
+-  Port availability (5432, 6379, 9000, 11434, 27017)
+-  Network connectivity
+-  DNS resolution
+-  Internet access for model downloads
+
+### LocalCloud Configuration
+
+#### Project Setup
+-  Valid LocalCloud project directory
+-  Configuration file syntax and completeness
+-  Component dependencies satisfied
+-  Service configurations valid
+
+#### File Permissions
+-  Read/write access to project directory
+-  Docker socket permissions
+-  Log file accessibility
+-  Data volume permissions
+
+## Examples
+
+### Basic Health Check
+
+```bash
+lc doctor
+```
+
+**Sample Output:**
+
+```
+LocalCloud Doctor
+
+
+System Requirements
+ Docker daemon running (v24.0.6)
+ Docker API accessible
+ System memory: 16GB available (8GB minimum)
+ Disk space: 45GB available (20GB minimum)
+ CPU: Apple M2, 8 cores
+ OS: macOS 14.1 (supported)
+
+Network Configuration
+ Port 5432 available (PostgreSQL)
+ Port 6379 available (Redis)
+ Port 9000 available (MinIO API)
+ Port 9001 available (MinIO Console)
+ Port 11434 available (Ollama)
+ Port 27017 available (MongoDB)
+ Internet connectivity available
+ DNS resolution working
+
+LocalCloud Configuration
+ Valid project directory
+ Configuration file present and valid
+ All component dependencies satisfied
+ Service configurations valid
+ File permissions correct
+
+Summary: 18 checks passed, 0 warnings, 0 errors
+Your LocalCloud setup is healthy! <‰
+```
+
+### Health Check with Issues
+
+```bash
+lc doctor
+```
+
+**Sample Output with Issues:**
+
+```
+LocalCloud Doctor
+
+
+System Requirements
+ Docker daemon not running
+ System memory: 16GB available (8GB minimum)
+  Disk space: 8GB available (20GB recommended)
+ CPU: Intel i7, 8 cores
+ OS: Ubuntu 22.04 (supported)
+
+Network Configuration
+ Port 5432 in use (PostgreSQL conflict)
+ Port 6379 available (Redis)
+ Port 9000 available (MinIO API)
+ Port 9001 available (MinIO Console)
+ Port 11434 available (Ollama)
+ Port 27017 available (MongoDB)
+Ë Internet connectivity (skipped - Docker not running)
+
+LocalCloud Configuration
+ Valid project directory
+ Configuration file has syntax errors
+Ë Dependencies check (skipped - config invalid)
+
+Issues Found:
+
+
+1. Docker Daemon Not Running
+   Problem: Docker service is not active
+   Solution: Start Docker service
+   Command: sudo systemctl start docker
+
+2. Port 5432 Conflict
+   Problem: PostgreSQL port in use by system service
+   Solution: Stop conflicting service or change port
+   Commands:
+     sudo systemctl stop postgresql
+     OR edit .localcloud/config.yaml: services.database.port: 5433
+
+3. Low Disk Space
+   Problem: Only 8GB available, 20GB recommended
+   Solution: Free up disk space or add storage
+   Command: df -h (check usage)
+
+4. Configuration Syntax Error
+   Problem: Invalid YAML on line 23
+   Solution: Fix YAML syntax error
+   Command: lc config validate
+
+Summary: 9 checks passed, 1 warning, 3 errors
+Please fix the issues above before starting services.
+```
+
+### Automatic Fix Attempt
+
+```bash
+lc doctor --fix
+```
+
+**Sample Output:**
+
+```
+LocalCloud Doctor (with auto-fix)
+
+
+System Requirements
+ Docker daemon not running
+  ’ Attempting to start Docker...
+   Docker daemon started successfully
+
+Network Configuration
+ Port 5432 in use (PostgreSQL conflict)
+  ’ Attempting to change LocalCloud database port...
+   Changed database port to 5433 in config
+
+LocalCloud Configuration
+ Configuration file has syntax errors
+  ’ Cannot auto-fix syntax errors
+   Manual intervention required
+
+Auto-fix Results:
+
+ Fixed: Docker daemon started
+ Fixed: Database port changed to 5433
+ Manual fix required: Configuration syntax error on line 23
+
+2 issues auto-fixed, 1 requires manual intervention.
+Run 'lc config validate' to check configuration syntax.
+```
+
+## Detailed Check Categories
+
+### Docker Health
+
+```bash
+# Docker checks performed:
+ Docker daemon status
+ Docker version (minimum 20.10)
+ Docker API version compatibility
+ Container runtime (docker/containerd)
+ Docker Compose availability
+ User permissions for Docker socket
+```
+
+**Common Docker Issues:**
+
+1. **Docker Not Running**
+   ```bash
+   # macOS
+   open -a Docker
+   
+   # Linux
+   sudo systemctl start docker
+   
+   # Windows (WSL)
+   net start com.docker.service
+   ```
+
+2. **Permission Denied**
+   ```bash
+   # Add user to docker group (Linux)
+   sudo usermod -aG docker $USER
+   # Then log out and back in
+   ```
+
+3. **Version Too Old**
+   ```bash
+   # Update Docker
+   curl -fsSL https://get.docker.com | sudo bash
+   ```
+
+### Resource Checks
+
+#### Memory Requirements
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| Ollama (3B model) | 2GB | 4GB |
+| PostgreSQL | 512MB | 1GB |
+| MongoDB | 512MB | 1GB |
+| Redis | 128MB | 512MB |
+| MinIO | 256MB | 512MB |
+| **Total** | **3.4GB** | **7GB** |
+
+#### Disk Space Requirements
+
+| Component | Usage |
+|-----------|-------|
+| Docker images | 3-5GB |
+| AI models | 2-50GB (per model) |
+| Database data | Variable |
+| Logs | 100MB-1GB |
+| **Recommended minimum** | **20GB** |
+
+### Port Availability
+
+Doctor checks these default ports and suggests alternatives if conflicts exist:
+
+| Service | Default Port | Alternative |
+|---------|--------------|-------------|
+| PostgreSQL | 5432 | 5433, 5434 |
+| MongoDB | 27017 | 27018, 27019 |
+| Redis | 6379 | 6380, 6381 |
+| MinIO API | 9000 | 9002, 9003 |
+| MinIO Console | 9001 | 9004, 9005 |
+| Ollama | 11434 | 11435, 11436 |
+
+### Configuration Validation
+
+#### Common Configuration Issues
+
+1. **YAML Syntax Errors**
+   ```yaml
+   # Wrong (missing quotes)
+   database:
+     password: p@ssw0rd!
+   
+   # Correct
+   database:
+     password: "p@ssw0rd!"
+   ```
+
+2. **Missing Required Fields**
+   ```yaml
+   # Wrong (missing type)
+   services:
+     database:
+       port: 5432
+   
+   # Correct
+   services:
+     database:
+       type: postgresql
+       port: 5432
+   ```
+
+3. **Invalid Resource Specifications**
+   ```yaml
+   # Wrong
+   resources:
+     memory: 8 GB  # Space not allowed
+   
+   # Correct
+   resources:
+     memory: 8GB
+   ```
+
+## Diagnostic Commands
+
+### Manual System Checks
+
+```bash
+# Check Docker status
+docker version
+docker ps
+
+# Check available resources
+free -h                    # Linux
+vm_stat                    # macOS
+Get-ComputerInfo          # Windows PowerShell
+
+# Check port usage
+netstat -tlnp | grep :5432   # Linux
+lsof -i :5432                # macOS
+netstat -an | findstr :5432  # Windows
+
+# Check disk space
+df -h                        # Linux/macOS
+dir                         # Windows
+```
+
+### LocalCloud Specific Checks
+
+```bash
+# Validate configuration
+lc config validate
+
+# Check service status
+lc status
+
+# View resource usage
+lc info
+
+# Check component dependencies
+lc component list
+```
+
+## Troubleshooting Guide
+
+### Cannot Start Services
+
+**Symptoms:**
+- Services fail to start
+- Container errors
+- Connection timeouts
+
+**Diagnosis:**
+```bash
+lc doctor
+lc logs --all
+```
+
+**Common Causes:**
+1. Port conflicts ’ Change ports in config
+2. Insufficient memory ’ Reduce model sizes
+3. Docker issues ’ Restart Docker
+4. Permission problems ’ Fix file permissions
+
+### Model Download Failures
+
+**Symptoms:**
+- Model pull commands timeout
+- Network errors during download
+- Incomplete model files
+
+**Diagnosis:**
+```bash
+lc doctor
+lc models list
+```
+
+**Solutions:**
+1. Check internet connectivity
+2. Verify disk space
+3. Try smaller models first
+4. Check Ollama service status
+
+### Performance Issues
+
+**Symptoms:**
+- Slow model responses
+- High memory usage
+- System freezing
+
+**Diagnosis:**
+```bash
+lc doctor
+lc info
+```
+
+**Solutions:**
+1. Use smaller models
+2. Increase system memory
+3. Close other applications
+4. Check CPU temperature
+
+## Best Practices
+
+### Regular Health Checks
+
+```bash
+# Run doctor before starting work
+lc doctor
+
+# Check after system updates
+lc doctor --fix
+
+# Include in CI/CD pipelines
+lc doctor > health-check.log
+```
+
+### Preventive Maintenance
+
+1. **Keep Docker Updated**: Newer versions have better performance
+2. **Monitor Disk Space**: Clean up unused images regularly
+3. **Review Resource Usage**: Adjust allocations based on usage
+4. **Backup Configurations**: Keep working configs in version control
+
+### Environment-Specific Checks
+
+```bash
+# Development environment
+lc doctor  # Full checks
+
+# Production environment
+lc doctor  # Focus on stability and security
+
+# CI/CD environment
+lc doctor --fix  # Automated fixes where possible
+```
+
+## Related Commands
+
+- [`lc info`](/cli/info) - Show detailed system information
+- [`lc status`](/cli/status) - Check service status
+- [`lc logs`](/cli/logs) - View service logs
+- [`lc config validate`](/cli/config) - Validate configuration
+- [`lc reset`](/cli/reset) - Reset system to clean state

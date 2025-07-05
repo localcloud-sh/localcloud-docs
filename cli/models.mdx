@@ -1,0 +1,479 @@
+---
+title: 'lc models'
+description: 'Manage AI models for language processing and embeddings'
+icon: 'robot'
+---
+
+# lc models
+
+Manage AI models including language models (LLMs) and embedding models. Download, list, remove, and get information about models running on Ollama.
+
+## Usage
+
+```bash
+lc models <command> [arguments] [flags]
+```
+
+**Aliases**: `lc model`, `lc m`
+
+## Commands
+
+### `lc models list`
+
+List all installed AI models.
+
+```bash
+lc models list
+
+# Aliases
+lc models ls
+lc model list
+lc m ls
+```
+
+**Output includes**:
+- Model name and tag
+- Model type (LLM, Embedding)
+- Size and modification date
+- Status (Active/Available)
+
+### `lc models pull`
+
+Download a model from the Ollama registry.
+
+```bash
+lc models pull <model-name>
+
+# Aliases
+lc models download <model-name>
+lc models get <model-name>
+
+# Examples
+lc models pull llama3.2:3b
+lc models pull mistral:7b
+lc models pull all-minilm:l6-v2
+```
+
+**Features**:
+- Progress bar during download
+- Automatic model type detection
+- Usage examples after successful download
+- Disk space validation
+
+### `lc models remove`
+
+Remove an installed model.
+
+```bash
+lc models remove <model-name>
+
+# Aliases
+lc models rm <model-name>
+lc models delete <model-name>
+
+# Examples
+lc models remove llama3.2:3b
+lc models rm mistral:7b
+```
+
+**Safety Features**:
+- Confirmation prompt before deletion
+- Warns if model is currently active
+- Shows disk space that will be freed
+
+### `lc models info`
+
+Show AI provider status and model information.
+
+```bash
+lc models info
+```
+
+**Information displayed**:
+- Ollama service status
+- Active models
+- Total models installed
+- Disk usage
+- API endpoints
+
+## Available Models
+
+### Language Models (LLMs)
+
+#### Small Models (2-4GB) - Recommended for Development
+
+| Model | Size | Description | Use Cases |
+|-------|------|-------------|-----------|
+| `qwen2.5:3b` | 2.0GB | Alibaba's efficient model | General chat, coding |
+| `phi3:3.8b` | 2.2GB | Microsoft's compact model | Reasoning, math |
+| `gemma2:2b` | 1.6GB | Google's tiny model | Quick responses |
+| `llama3.2:3b` | 2.0GB | Meta's latest compact | General purpose |
+
+#### Medium Models (4-8GB) - Balanced Performance
+
+| Model | Size | Description | Use Cases |
+|-------|------|-------------|-----------|
+| `llama3.2:7b` | 4.1GB | Meta's standard model | Chat, content creation |
+| `mistral:7b` | 4.1GB | Mistral AI's base model | Coding, reasoning |
+| `codellama:7b` | 3.8GB | Code-specialized Llama | Programming assistance |
+| `neural-chat:7b` | 4.1GB | Intel's fine-tuned model | Conversations |
+
+#### Large Models (10GB+) - High Performance
+
+| Model | Size | Description | Use Cases |
+|-------|------|-------------|-----------|
+| `mixtral:8x7b` | 26GB | Mixture of Experts | Complex reasoning |
+| `llama3.1:70b` | 40GB | Meta's largest model | Advanced tasks |
+| `qwen2.5:32b` | 19GB | Alibaba's large model | Professional use |
+
+### Embedding Models
+
+| Model | Size | Dimensions | Description |
+|-------|------|------------|-------------|
+| `all-minilm:l6-v2` | 91MB | 384 | Fast, general-purpose |
+| `nomic-embed-text` | 274MB | 768 | High-quality text embeddings |
+| `mxbai-embed-large` | 669MB | 1024 | Large context, high accuracy |
+
+### Specialized Models
+
+| Model | Size | Specialization |
+|-------|------|----------------|
+| `codellama:7b` | 3.8GB | Code generation |
+| `deepseek-coder:6.7b` | 3.8GB | Programming |
+| `solar:10.7b` | 6.1GB | Instruction following |
+| `wizardmath:7b` | 3.8GB | Mathematical reasoning |
+
+## Examples
+
+### List Installed Models
+
+```bash
+lc models list
+```
+
+**Sample Output:**
+```
+AI Models (Ollama)
+
+
+Language Models:
+ llama3.2:3b        2.0GB    Active     2024-01-15
+Ë mistral:7b         4.1GB    Available  2024-01-10
+Ë codellama:7b       3.8GB    Available  2024-01-08
+
+Embedding Models:
+ all-minilm:l6-v2   91MB     Active     2024-01-12
+Ë nomic-embed-text   274MB    Available  2024-01-05
+
+Total: 5 models, 7.1GB used
+Active: llama3.2:3b (LLM), all-minilm:l6-v2 (Embedding)
+```
+
+### Download a Model
+
+```bash
+lc models pull llama3.2:3b
+```
+
+**Output with Progress:**
+```
+Downloading llama3.2:3b...
+
+
+Pulling model: llama3.2:3b
+ˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆ 100% 2.0GB/2.0GB
+
+ Model downloaded successfully!
+
+Model Information:
+- Name: llama3.2:3b
+- Type: Language Model
+- Size: 2.0GB
+- Parameters: 3 billion
+- Context: 128k tokens
+
+Usage Examples:
+# Test the model
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2:3b",
+  "prompt": "Hello! Tell me about yourself.",
+  "stream": false
+}'
+
+# Use in your application
+import requests
+response = requests.post('http://localhost:11434/api/generate', 
+  json={'model': 'llama3.2:3b', 'prompt': 'Hello!'})
+```
+
+### Remove a Model
+
+```bash
+lc models remove mistral:7b
+```
+
+**Output:**
+```
+Remove model: mistral:7b (4.1GB)
+
+This will permanently delete the model and free up 4.1GB of disk space.
+Are you sure? (y/N): y
+
+ Model 'mistral:7b' removed successfully
+ Freed 4.1GB of disk space
+```
+
+### Check AI Service Status
+
+```bash
+lc models info
+```
+
+**Output:**
+```
+AI Service Status
+
+
+Ollama Service:
+ Status: Running
+ Version: 0.1.17
+ API: http://localhost:11434
+ Models Directory: ~/.ollama/models
+
+Model Statistics:
+- Total Models: 5
+- Language Models: 3
+- Embedding Models: 2
+- Total Size: 7.1GB
+- Available Space: 45GB
+
+Active Models:
+- LLM: llama3.2:3b (default)
+- Embedding: all-minilm:l6-v2 (default)
+
+Memory Usage:
+- Used: 2.4GB
+- Available: 13.6GB
+- Models in Memory: 1
+```
+
+## Model Selection Guide
+
+### By Hardware Requirements
+
+#### 8GB RAM Systems
+```bash
+# Recommended models
+lc models pull qwen2.5:3b      # Best overall
+lc models pull phi3:3.8b       # Good for reasoning
+lc models pull gemma2:2b       # Fastest responses
+```
+
+#### 16GB RAM Systems
+```bash
+# Balanced performance
+lc models pull llama3.2:7b     # High quality
+lc models pull mistral:7b      # Great for code
+lc models pull codellama:7b    # Specialized coding
+```
+
+#### 32GB+ RAM Systems
+```bash
+# High performance models
+lc models pull mixtral:8x7b    # Mixture of experts
+lc models pull qwen2.5:32b     # Advanced reasoning
+lc models pull llama3.1:70b    # Best quality
+```
+
+### By Use Case
+
+#### General Chat Applications
+```bash
+lc models pull llama3.2:3b     # Small, fast
+lc models pull llama3.2:7b     # Better quality
+```
+
+#### Code Generation
+```bash
+lc models pull codellama:7b    # Code-specialized
+lc models pull deepseek-coder:6.7b  # Advanced coding
+```
+
+#### RAG (Retrieval Augmented Generation)
+```bash
+# Language model
+lc models pull llama3.2:7b
+
+# Embedding model
+lc models pull all-minilm:l6-v2      # Fast
+lc models pull nomic-embed-text      # High quality
+```
+
+#### Mathematical Reasoning
+```bash
+lc models pull wizardmath:7b   # Math-specialized
+lc models pull qwen2.5:7b      # Strong reasoning
+```
+
+## Model Management
+
+### Default Model Configuration
+
+Set default models in your configuration:
+
+```yaml
+services:
+  ai:
+    models:
+      - name: llama3.2:3b
+        type: llm
+        default: true
+      - name: all-minilm:l6-v2
+        type: embedding
+        default: true
+```
+
+### Model Updates
+
+```bash
+# Update to newer version
+lc models pull llama3.2:latest
+
+# Remove old version
+lc models remove llama3.2:3b
+
+# Update embedding model
+lc models pull all-minilm:latest
+```
+
+### Batch Operations
+
+```bash
+# Download multiple models
+lc models pull llama3.2:3b mistral:7b codellama:7b
+
+# Remove multiple models
+lc models remove old-model:v1 test-model:experimental
+```
+
+## Performance Optimization
+
+### Memory Management
+
+```bash
+# Check memory usage
+lc models info
+
+# If memory is low, use smaller models
+lc models remove large-model:70b
+lc models pull efficient-model:3b
+```
+
+### Disk Space Management
+
+```bash
+# Check disk usage
+lc models list
+
+# Clean up unused models
+lc models remove unused-model:7b
+
+# Keep only essential models
+lc models remove $(lc models list --inactive)
+```
+
+## Troubleshooting
+
+### Model Download Issues
+
+```bash
+Error: failed to download model 'llama3.2:3b'
+```
+
+**Solutions**:
+1. Check internet connection
+2. Verify disk space: `lc models info`
+3. Restart Ollama service: `lc restart ai`
+4. Try different model: `lc models pull phi3:3.8b`
+
+### Model Not Found
+
+```bash
+Error: model 'custom-model' not found
+```
+
+**Solutions**:
+1. Check available models: `lc models list`
+2. Pull the model first: `lc models pull custom-model`
+3. Verify model name spelling
+
+### Out of Memory
+
+```bash
+Error: insufficient memory to load model
+```
+
+**Solutions**:
+1. Use smaller model: `lc models pull qwen2.5:3b`
+2. Close other applications
+3. Increase system RAM
+4. Use quantized models
+
+### Ollama Service Issues
+
+```bash
+Error: cannot connect to Ollama service
+```
+
+**Solutions**:
+1. Start AI service: `lc start ai`
+2. Check service status: `lc status`
+3. Restart service: `lc restart ai`
+4. Check logs: `lc logs ai`
+
+## Model API Usage
+
+### Direct API Calls
+
+```bash
+# Generate text
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2:3b",
+  "prompt": "Explain quantum computing",
+  "stream": false
+}'
+
+# Create embeddings
+curl http://localhost:11434/api/embeddings -d '{
+  "model": "all-minilm:l6-v2",
+  "prompt": "This is a test sentence"
+}'
+```
+
+### Integration Examples
+
+```python
+# Python example
+import requests
+
+def chat_with_model(prompt, model="llama3.2:3b"):
+    response = requests.post('http://localhost:11434/api/generate', 
+        json={
+            'model': model,
+            'prompt': prompt,
+            'stream': False
+        })
+    return response.json()['response']
+
+# Usage
+answer = chat_with_model("What is machine learning?")
+print(answer)
+```
+
+## Related Commands
+
+- [`lc start ai`](/cli/start) - Start AI service
+- [`lc status`](/cli/status) - Check AI service status
+- [`lc logs ai`](/cli/logs) - View AI service logs
+- [`lc component add llm`](/cli/component) - Add LLM component
+- [`lc info`](/cli/info) - System resource information

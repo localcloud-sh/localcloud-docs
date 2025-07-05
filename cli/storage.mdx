@@ -1,0 +1,528 @@
+---
+title: 'Storage Service'
+description: 'Manage MinIO object storage service for S3-compatible file storage'
+icon: 'box'
+---
+
+# Storage Service
+
+The storage service provides S3-compatible object storage using MinIO. Perfect for storing files, images, documents, and any binary data with a familiar S3 API.
+
+## Service Management
+
+### Start Storage Service
+
+```bash
+# Start storage service
+lc start storage
+
+# Start all services (including storage if configured)
+lc start
+```
+
+### Stop Storage Service
+
+```bash
+# Stop storage service
+lc stop storage
+
+# Stop all services
+lc stop
+```
+
+### Check Storage Status
+
+```bash
+# Check service status
+lc status
+
+# Check specific storage status
+lc service status storage
+```
+
+## Component Management
+
+### Add Storage to Project
+
+```bash
+# Add storage component
+lc component add storage
+
+# List available components
+lc component list
+```
+
+### Remove Storage from Project
+
+```bash
+# Remove storage component
+lc component remove storage
+```
+
+### Get Storage Information
+
+```bash
+# Get storage component details
+lc component info storage
+```
+
+## Service Configuration
+
+### Default Settings
+
+- **API Port**: `9000`
+- **Console Port**: `9001`
+- **Host**: `localhost`
+- **Container**: `localcloud-minio`
+- **Access Key**: `minioadmin`
+- **Secret Key**: `minioadmin`
+
+### Access Points
+
+- **API Endpoint**: `http://localhost:9000`
+- **Web Console**: `http://localhost:9001`
+- **Console Login**: `minioadmin` / `minioadmin`
+
+## Web Console Access
+
+### Open MinIO Console
+
+```bash
+# Open web console in browser
+open http://localhost:9001
+
+# Or visit manually
+# http://localhost:9001
+```
+
+**Login Credentials:**
+- **Username**: `minioadmin`
+- **Password**: `minioadmin`
+
+### Console Features
+
+- **Bucket Management**: Create, delete, browse buckets
+- **File Operations**: Upload, download, delete files
+- **Access Control**: Manage policies and users
+- **Monitoring**: View storage metrics and logs
+
+## Basic Usage Examples
+
+### Using MinIO Client (mc)
+
+```bash
+# Install MinIO client (if not installed)
+# macOS: brew install minio/stable/mc
+# Linux: wget https://dl.min.io/client/mc/release/linux-amd64/mc
+
+# Configure MinIO client
+mc alias set local http://localhost:9000 minioadmin minioadmin
+
+# Create a bucket
+mc mb local/my-bucket
+
+# List buckets
+mc ls local
+
+# Upload a file
+mc cp myfile.txt local/my-bucket/
+
+# Download a file
+mc cp local/my-bucket/myfile.txt ./downloaded-file.txt
+
+# List files in bucket
+mc ls local/my-bucket
+
+# Remove a file
+mc rm local/my-bucket/myfile.txt
+```
+
+### Direct API Access
+
+```bash
+# Using curl to interact with S3 API
+
+# List buckets
+curl -X GET http://localhost:9000
+
+# Create bucket (requires AWS signature - use SDK instead)
+# See programming examples below
+```
+
+## Application Integration
+
+### Python Example (boto3)
+
+```python
+import boto3
+from botocore.client import Config
+
+# Configure MinIO client
+s3_client = boto3.client(
+    's3',
+    endpoint_url='http://localhost:9000',
+    aws_access_key_id='minioadmin',
+    aws_secret_access_key='minioadmin',
+    config=Config(signature_version='s3v4'),
+    region_name='us-east-1'
+)
+
+# Create bucket
+bucket_name = 'my-app-data'
+s3_client.create_bucket(Bucket=bucket_name)
+
+# Upload file
+with open('local-file.txt', 'rb') as file:
+    s3_client.upload_fileobj(file, bucket_name, 'remote-file.txt')
+
+# Download file
+s3_client.download_file(bucket_name, 'remote-file.txt', 'downloaded-file.txt')
+
+# List objects
+response = s3_client.list_objects_v2(Bucket=bucket_name)
+for obj in response.get('Contents', []):
+    print(f"File: {obj['Key']}, Size: {obj['Size']} bytes")
+
+# Generate presigned URL (for temporary access)
+url = s3_client.generate_presigned_url(
+    'get_object',
+    Params={'Bucket': bucket_name, 'Key': 'remote-file.txt'},
+    ExpiresIn=3600  # 1 hour
+)
+print(f"Temporary download URL: {url}")
+
+# Delete file
+s3_client.delete_object(Bucket=bucket_name, Key='remote-file.txt')
+```
+
+### Node.js Example (AWS SDK)
+
+```javascript
+const AWS = require('aws-sdk');
+
+// Configure MinIO client
+const s3 = new AWS.S3({
+    endpoint: 'http://localhost:9000',
+    accessKeyId: 'minioadmin',
+    secretAccessKey: 'minioadmin',
+    s3ForcePathStyle: true,
+    signatureVersion: 'v4'
+});
+
+// Create bucket
+async function createBucket(bucketName) {
+    try {
+        await s3.createBucket({ Bucket: bucketName }).promise();
+        console.log(`Bucket ${bucketName} created`);
+    } catch (error) {
+        console.error('Error creating bucket:', error);
+    }
+}
+
+// Upload file
+async function uploadFile(bucketName, key, fileContent) {
+    const params = {
+        Bucket: bucketName,
+        Key: key,
+        Body: fileContent
+    };
+    
+    try {
+        const result = await s3.upload(params).promise();
+        console.log('File uploaded:', result.Location);
+        return result;
+    } catch (error) {
+        console.error('Upload error:', error);
+    }
+}
+
+// Download file
+async function downloadFile(bucketName, key) {
+    const params = {
+        Bucket: bucketName,
+        Key: key
+    };
+    
+    try {
+        const result = await s3.getObject(params).promise();
+        return result.Body;
+    } catch (error) {
+        console.error('Download error:', error);
+    }
+}
+
+// List files
+async function listFiles(bucketName) {
+    try {
+        const result = await s3.listObjectsV2({ Bucket: bucketName }).promise();
+        result.Contents.forEach(obj => {
+            console.log(`File: ${obj.Key}, Size: ${obj.Size} bytes`);
+        });
+        return result.Contents;
+    } catch (error) {
+        console.error('List error:', error);
+    }
+}
+
+// Usage
+const bucketName = 'my-app-uploads';
+await createBucket(bucketName);
+await uploadFile(bucketName, 'test.txt', 'Hello, MinIO!');
+await listFiles(bucketName);
+```
+
+### Go Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "strings"
+
+    "github.com/minio/minio-go/v7"
+    "github.com/minio/minio-go/v7/pkg/credentials"
+)
+
+func main() {
+    // Connect to MinIO
+    minioClient, err := minio.New("localhost:9000", &minio.Options{
+        Creds:  credentials.NewStaticV4("minioadmin", "minioadmin", ""),
+        Secure: false,
+    })
+    if err != nil {
+        log.Fatalln(err)
+    }
+
+    ctx := context.Background()
+    bucketName := "my-go-bucket"
+
+    // Create bucket
+    err = minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+    if err != nil {
+        log.Printf("Bucket creation error: %v", err)
+    }
+
+    // Upload file
+    objectName := "test-file.txt"
+    content := strings.NewReader("Hello from Go!")
+    contentType := "text/plain"
+
+    info, err := minioClient.PutObject(ctx, bucketName, objectName, content, 
+        content.Size(), minio.PutObjectOptions{ContentType: contentType})
+    if err != nil {
+        log.Fatalln(err)
+    }
+    fmt.Printf("Uploaded %s, size: %d\n", objectName, info.Size)
+
+    // List objects
+    objectCh := minioClient.ListObjects(ctx, bucketName, minio.ListObjectsOptions{})
+    for object := range objectCh {
+        if object.Err != nil {
+            log.Fatalln(object.Err)
+        }
+        fmt.Printf("Object: %s, Size: %d\n", object.Key, object.Size)
+    }
+
+    // Download file
+    reader, err := minioClient.GetObject(ctx, bucketName, objectName, minio.GetObjectOptions{})
+    if err != nil {
+        log.Fatalln(err)
+    }
+    defer reader.Close()
+}
+```
+
+## Common Use Cases
+
+### File Upload Service
+
+```python
+# Flask example for file uploads
+from flask import Flask, request, jsonify
+import boto3
+
+app = Flask(__name__)
+s3 = boto3.client('s3', endpoint_url='http://localhost:9000', ...)
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+    
+    # Upload to MinIO
+    bucket_name = 'user-uploads'
+    s3.upload_fileobj(file, bucket_name, file.filename)
+    
+    # Generate download URL
+    url = s3.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': bucket_name, 'Key': file.filename},
+        ExpiresIn=3600
+    )
+    
+    return jsonify({
+        'message': 'File uploaded successfully',
+        'download_url': url
+    })
+```
+
+### Image Storage with Thumbnails
+
+```python
+def store_image_with_thumbnail(image_file, image_id):
+    bucket_name = 'images'
+    
+    # Store original image
+    original_key = f'originals/{image_id}.jpg'
+    s3.upload_fileobj(image_file, bucket_name, original_key)
+    
+    # Create and store thumbnail
+    thumbnail = create_thumbnail(image_file, size=(200, 200))
+    thumbnail_key = f'thumbnails/{image_id}_thumb.jpg'
+    s3.upload_fileobj(thumbnail, bucket_name, thumbnail_key)
+    
+    return {
+        'original': f'http://localhost:9000/{bucket_name}/{original_key}',
+        'thumbnail': f'http://localhost:9000/{bucket_name}/{thumbnail_key}'
+    }
+```
+
+### Backup and Archive
+
+```python
+import tarfile
+import io
+
+def backup_directory_to_storage(local_path, backup_name):
+    # Create tar archive in memory
+    tar_buffer = io.BytesIO()
+    with tarfile.open(mode='w:gz', fileobj=tar_buffer) as tar:
+        tar.add(local_path, arcname='.')
+    
+    tar_buffer.seek(0)
+    
+    # Upload to MinIO
+    bucket_name = 'backups'
+    key = f'{backup_name}-{datetime.now().isoformat()}.tar.gz'
+    
+    s3.upload_fileobj(tar_buffer, bucket_name, key)
+    print(f'Backup stored as {key}')
+```
+
+## Monitoring and Debugging
+
+### View Storage Logs
+
+```bash
+# View storage logs
+lc logs storage
+
+# Follow logs in real-time
+lc logs storage -f
+```
+
+### Check Storage Status
+
+```bash
+# Connect to MinIO container
+lc exec storage sh
+
+# Inside container, check disk usage
+df -h
+
+# Check MinIO server info
+mc admin info local
+```
+
+### Performance Monitoring
+
+Access the web console at `http://localhost:9001` to view:
+- Storage usage metrics
+- Request statistics
+- Active connections
+- Error logs
+
+## Configuration Options
+
+### Update Storage Settings
+
+```bash
+# Update storage configuration
+lc component update storage
+```
+
+### Available Configurations
+
+```yaml
+# In .localcloud/config.yaml
+services:
+  storage:
+    type: minio
+    api_port: 9000
+    console_port: 9001
+    access_key: minioadmin
+    secret_key: minioadmin
+    volumes:
+      - data:/data
+```
+
+## Troubleshooting
+
+### Storage Service Won't Start
+
+```bash
+Error: failed to start storage service
+```
+
+**Solutions:**
+1. Check if ports are available: `lsof -i :9000` and `lsof -i :9001`
+2. Check Docker status: `lc doctor`
+3. View logs: `lc logs storage`
+4. Restart service: `lc restart storage`
+
+### Cannot Access Web Console
+
+```bash
+# Check if console port is correct
+lc service url storage
+
+# Should show: http://localhost:9001
+```
+
+### Connection Errors
+
+```bash
+Error: No such host is known
+```
+
+**Solutions:**
+1. Ensure service is running: `lc status`
+2. Check correct endpoint: `http://localhost:9000`
+3. Verify credentials: `minioadmin` / `minioadmin`
+
+### Bucket Access Issues
+
+```python
+# Check bucket exists
+try:
+    s3.head_bucket(Bucket='my-bucket')
+except ClientError as e:
+    if e.response['Error']['Code'] == '404':
+        # Bucket doesn't exist, create it
+        s3.create_bucket(Bucket='my-bucket')
+```
+
+## Related Commands
+
+- [`lc start storage`](/cli/start) - Start storage service
+- [`lc stop storage`](/cli/stop) - Stop storage service
+- [`lc logs storage`](/cli/logs) - View storage logs
+- [`lc component add storage`](/cli/component) - Add storage component
+- [`lc status`](/cli/status) - Check service status

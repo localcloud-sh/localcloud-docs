@@ -33,7 +33,6 @@ These flags are available for all commands:
 <CardGroup cols={2}>
     <Card title="Project Management" icon="folder">
         Initialize, configure, and manage projects
-        - `lc init`
         - `lc setup`
         - `lc status`
         - `lc reset`
@@ -67,11 +66,8 @@ These flags are available for all commands:
 ### Essential Commands
 
 ```bash
-# Initialize a new project
-lc init [project-name]
-
-# Interactive setup
-lc setup
+# Initialize and setup a new project
+lc setup [project-name]
 
 # Start all services
 lc start
@@ -198,7 +194,6 @@ lc version --detailed
 ```bash
 # Create and setup
 mkdir my-app && cd my-app
-lc init
 lc setup
 lc start
 ```
@@ -237,7 +232,7 @@ LocalCloud provides clear error messages:
 ```bash
 # Example: Project not initialized
 $ lc start
-Error: no LocalCloud project found. Run 'localcloud init' first
+Error: no LocalCloud project found. Run 'lc setup' first
 
 # Example: Docker not running
 $ lc start
@@ -259,9 +254,9 @@ LocalCloud respects these environment variables:
     <Card
         title="Project Commands"
         icon="folder"
-        href="/cli/init"
+        href="/cli/setup"
     >
-        Learn about project initialization
+        Learn about project setup
     </Card>
     <Card
         title="Service Commands"

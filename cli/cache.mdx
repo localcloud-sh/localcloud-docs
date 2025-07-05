@@ -1,0 +1,391 @@
+---
+title: 'Cache Service'
+description: 'Manage Redis cache service for high-performance data caching'
+icon: 'bolt'
+---
+
+# Cache Service
+
+The cache service provides high-performance in-memory data storage using Redis. Perfect for session storage, temporary data, and performance optimization.
+
+## Service Management
+
+### Start Cache Service
+
+```bash
+# Start cache service
+lc start cache
+
+# Start all services (including cache if configured)
+lc start
+```
+
+### Stop Cache Service
+
+```bash
+# Stop cache service
+lc stop cache
+
+# Stop all services
+lc stop
+```
+
+### Check Cache Status
+
+```bash
+# Check service status
+lc status
+
+# Check specific cache status
+lc service status cache
+```
+
+## Component Management
+
+### Add Cache to Project
+
+```bash
+# Add cache component
+lc component add cache
+
+# List available components
+lc component list
+```
+
+### Remove Cache from Project
+
+```bash
+# Remove cache component
+lc component remove cache
+```
+
+### Get Cache Information
+
+```bash
+# Get cache component details
+lc component info cache
+```
+
+## Service Configuration
+
+### Default Settings
+
+- **Port**: `6379`
+- **Host**: `localhost`
+- **Container**: `localcloud-redis`
+- **Max Memory**: `256MB`
+- **Memory Policy**: `allkeys-lru` (evict least recently used)
+- **Persistence**: Disabled (in-memory only)
+
+### Connection Details
+
+```bash
+# Connection string
+redis://localhost:6379
+
+# No authentication by default
+```
+
+## Basic Usage Examples
+
+### Connect to Cache
+
+```bash
+# Using redis-cli (if installed)
+redis-cli -h localhost -p 6379
+
+# Or connect via Docker container
+lc exec cache redis-cli
+```
+
+### Basic Cache Operations
+
+Once connected to redis-cli:
+
+```redis
+# Set a key-value pair
+SET mykey "Hello World"
+
+# Get a value
+GET mykey
+
+# Set with expiration (60 seconds)
+SETEX session:user123 60 "user_data"
+
+# Check if key exists
+EXISTS mykey
+
+# Delete a key
+DEL mykey
+
+# Get all keys (use carefully in production)
+KEYS *
+
+# Get cache info
+INFO memory
+
+# Flush all data (careful!)
+FLUSHALL
+```
+
+### Cache with Expiration
+
+```redis
+# Set key with TTL (Time To Live)
+EXPIRE mykey 300
+
+# Set key with TTL in one command
+SETEX tempdata 300 "temporary value"
+
+# Check remaining TTL
+TTL mykey
+
+# Remove expiration
+PERSIST mykey
+```
+
+## Application Integration
+
+### Python Example
+
+```python
+import redis
+
+# Connect to cache
+cache = redis.Redis(host='localhost', port=6379, decode_responses=True)
+
+# Basic operations
+cache.set('user:123', 'John Doe')
+user = cache.get('user:123')
+print(user)  # John Doe
+
+# With expiration
+cache.setex('session:abc', 3600, 'session_data')
+
+# Hash operations
+cache.hset('user:123:profile', 'name', 'John')
+cache.hset('user:123:profile', 'email', 'john@example.com')
+profile = cache.hgetall('user:123:profile')
+```
+
+### Node.js Example
+
+```javascript
+const redis = require('redis');
+
+// Connect to cache
+const cache = redis.createClient({
+    host: 'localhost',
+    port: 6379
+});
+
+cache.on('connect', () => {
+    console.log('Connected to cache');
+});
+
+// Basic operations
+await cache.set('user:123', 'John Doe');
+const user = await cache.get('user:123');
+console.log(user); // John Doe
+
+// With expiration
+await cache.setEx('session:abc', 3600, 'session_data');
+
+// JSON data
+await cache.set('config', JSON.stringify({theme: 'dark', lang: 'en'}));
+const config = JSON.parse(await cache.get('config'));
+```
+
+### Go Example
+
+```go
+package main
+
+import (
+    "github.com/go-redis/redis/v8"
+    "context"
+    "time"
+)
+
+func main() {
+    // Connect to cache
+    cache := redis.NewClient(&redis.Options{
+        Addr: "localhost:6379",
+    })
+
+    ctx := context.Background()
+
+    // Basic operations
+    cache.Set(ctx, "user:123", "John Doe", 0)
+    user := cache.Get(ctx, "user:123").Val()
+    
+    // With expiration
+    cache.Set(ctx, "session:abc", "session_data", time.Hour)
+    
+    // Check if exists
+    exists := cache.Exists(ctx, "user:123").Val()
+}
+```
+
+## Monitoring and Debugging
+
+### View Cache Logs
+
+```bash
+# View cache logs
+lc logs cache
+
+# Follow logs in real-time
+lc logs cache -f
+```
+
+### Check Memory Usage
+
+```bash
+# Connect and check memory
+lc exec cache redis-cli info memory
+
+# Check all stats
+lc exec cache redis-cli info
+```
+
+### Performance Monitoring
+
+```redis
+# Monitor commands in real-time
+MONITOR
+
+# Get slow queries
+SLOWLOG GET 10
+
+# Check connected clients
+CLIENT LIST
+
+# Get cache statistics
+INFO stats
+```
+
+## Common Use Cases
+
+### Session Storage
+
+```python
+# Store user session
+cache.setex(f'session:{session_id}', 3600, json.dumps({
+    'user_id': 123,
+    'username': 'john',
+    'role': 'admin'
+}))
+
+# Retrieve session
+session_data = cache.get(f'session:{session_id}')
+if session_data:
+    session = json.loads(session_data)
+```
+
+### API Response Caching
+
+```python
+def get_user_profile(user_id):
+    cache_key = f'user_profile:{user_id}'
+    
+    # Try cache first
+    cached = cache.get(cache_key)
+    if cached:
+        return json.loads(cached)
+    
+    # Fetch from database
+    profile = fetch_from_database(user_id)
+    
+    # Cache for 15 minutes
+    cache.setex(cache_key, 900, json.dumps(profile))
+    
+    return profile
+```
+
+### Rate Limiting
+
+```python
+def check_rate_limit(user_id, limit=100, window=3600):
+    key = f'rate_limit:{user_id}:{int(time.time() // window)}'
+    
+    current = cache.get(key) or 0
+    if int(current) >= limit:
+        return False
+    
+    # Increment counter
+    pipe = cache.pipeline()
+    pipe.incr(key)
+    pipe.expire(key, window)
+    pipe.execute()
+    
+    return True
+```
+
+## Configuration Options
+
+### Update Cache Settings
+
+```bash
+# Update cache configuration
+lc component update cache
+```
+
+### Available Configurations
+
+```yaml
+# In .localcloud/config.yaml
+services:
+  cache:
+    type: redis
+    port: 6379
+    max_memory: "256mb"
+    max_memory_policy: "allkeys-lru"
+    persistence: false
+    password: ""  # Optional
+```
+
+## Troubleshooting
+
+### Cache Service Won't Start
+
+```bash
+Error: failed to start cache service
+```
+
+**Solutions:**
+1. Check if port is available: `lsof -i :6379`
+2. Check Docker status: `lc doctor`
+3. View logs: `lc logs cache`
+4. Restart service: `lc restart cache`
+
+### Connection Refused
+
+```bash
+Error: connection refused
+```
+
+**Solutions:**
+1. Ensure service is running: `lc status`
+2. Check correct port: `6379` for cache
+3. Verify in same network: `lc ps`
+
+### Memory Issues
+
+```bash
+Error: OOM (Out of Memory)
+```
+
+**Solutions:**
+1. Increase max memory in config
+2. Check memory policy: `allkeys-lru`
+3. Clear unnecessary keys: `FLUSHALL`
+4. Monitor memory: `lc exec cache redis-cli info memory`
+
+## Related Commands
+
+- [`lc start cache`](/cli/start) - Start cache service
+- [`lc stop cache`](/cli/stop) - Stop cache service  
+- [`lc logs cache`](/cli/logs) - View cache logs
+- [`lc component add cache`](/cli/component) - Add cache component
+- [`lc status`](/cli/status) - Check service status

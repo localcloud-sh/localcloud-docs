@@ -1,0 +1,193 @@
+---
+title: 'lc mongo'
+description: 'Connect to MongoDB database'
+icon: 'leaf'
+---
+
+# lc mongo
+
+Connect to your LocalCloud MongoDB database using the interactive MongoDB shell.
+
+## Usage
+
+```bash
+lc mongo <command> [flags]
+```
+
+## Commands
+
+### `lc mongo connect`
+
+Connect to MongoDB using mongosh (or legacy mongo client).
+
+```bash
+lc mongo connect
+```
+
+**What it does:**
+- Opens an interactive MongoDB shell session
+- Connects to the LocalCloud MongoDB instance
+- Uses connection string: `mongodb://localcloud:localcloud@localhost:27017/localcloud?authSource=admin`
+- Tries `mongosh` first, falls back to legacy `mongo` client
+
+## Prerequisites
+
+### MongoDB Service Running
+
+```bash
+# Ensure MongoDB is configured and running
+lc status
+
+# If not running, start it
+lc start mongodb
+```
+
+### MongoDB Client Tools
+
+You need MongoDB client tools installed:
+
+**macOS:**
+```bash
+# Install via Homebrew
+brew install mongodb/brew/mongodb-community-shell
+
+# Or MongoDB Database Tools
+brew install mongodb/brew/mongodb-database-tools
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+# Install mongosh
+wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+sudo apt-get update
+sudo apt-get install -y mongodb-mongosh
+```
+
+**Windows:**
+```bash
+# Download from MongoDB website
+# https://www.mongodb.com/try/download/shell
+```
+
+## Example Usage
+
+### Connect to MongoDB
+
+```bash
+lc mongo connect
+```
+
+**Output:**
+```
+Connecting to MongoDB...
+Connection URI: mongodb://localcloud:localcloud@localhost:27017/localcloud?authSource=admin
+
+Current Mongosh Log ID: 65a1b2c3d4e5f678901234567
+Connecting to: mongodb://localcloud:localcloud@localhost:27017/localcloud?authSource=admin
+Using MongoDB: 7.0.0
+Using Mongosh: 2.1.0
+
+localcloud>
+```
+
+### Basic MongoDB Operations
+
+Once connected, you can use standard MongoDB commands:
+
+```javascript
+// Show current database
+db
+
+// List collections
+show collections
+
+// Insert a document
+db.users.insertOne({name: "Alice", email: "alice@example.com"})
+
+// Find documents
+db.users.find()
+
+// Create an index
+db.users.createIndex({email: 1}, {unique: true})
+
+// Show database stats
+db.stats()
+
+// Exit the shell
+exit
+```
+
+## Connection Details
+
+- **Host**: `localhost`
+- **Port**: `27017` 
+- **Username**: `localcloud`
+- **Password**: `localcloud`
+- **Database**: `localcloud`
+- **Auth Database**: `admin`
+
+## Troubleshooting
+
+### MongoDB Service Not Running
+
+```bash
+Error: MongoDB service not configured
+```
+
+**Solution**: Start MongoDB service
+```bash
+lc start mongodb
+```
+
+### Client Not Found
+
+```bash
+Error: mongosh command not found. Please install MongoDB client tools
+```
+
+**Solutions:**
+1. Install mongosh: `brew install mongodb/brew/mongodb-community-shell`
+2. Install legacy mongo client
+3. Use Docker: `lc exec mongodb mongosh`
+
+### Connection Refused
+
+```bash
+Error: failed to connect to MongoDB
+```
+
+**Solutions:**
+1. Check service status: `lc status`
+2. Check logs: `lc logs mongodb`
+3. Restart service: `lc restart mongodb`
+
+### Authentication Failed
+
+```bash
+Error: Authentication failed
+```
+
+**Solutions:**
+1. Verify credentials are default: `localcloud:localcloud`
+2. Check MongoDB auth configuration in `localcloud.yaml`
+3. Try connecting via Docker: `lc exec mongodb mongosh`
+
+## Direct Docker Access
+
+If the client tools aren't installed, you can connect directly via Docker:
+
+```bash
+# Connect via Docker container
+lc exec mongodb mongosh "mongodb://localcloud:localcloud@localhost:27017/localcloud?authSource=admin"
+
+# Or open a shell in the container
+lc exec mongodb bash
+```
+
+## Related Commands
+
+- [`lc start mongodb`](/cli/start) - Start MongoDB service
+- [`lc status`](/cli/status) - Check MongoDB status  
+- [`lc logs mongodb`](/cli/logs) - View MongoDB logs
+- [`lc stop mongodb`](/cli/stop) - Stop MongoDB service

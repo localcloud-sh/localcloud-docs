@@ -1,0 +1,495 @@
+---
+title: 'lc config'
+description: 'Manage LocalCloud configuration files and settings'
+icon: 'gear'
+---
+
+# lc config
+
+Manage LocalCloud configuration files, validate settings, and generate default configurations for your project.
+
+## Usage
+
+```bash
+lc config <command> [arguments] [flags]
+```
+
+## Commands
+
+### `lc config show`
+
+Display the current project configuration.
+
+```bash
+lc config show
+```
+
+**Output includes**:
+- Configuration file location
+- Project settings
+- Service configurations
+- Component settings
+- Resource allocations
+
+### `lc config validate`
+
+Validate the configuration file for syntax and consistency errors.
+
+```bash
+lc config validate
+```
+
+**Validation checks**:
+- YAML syntax validity
+- Required fields presence
+- Service configuration correctness
+- Port conflicts
+- Resource constraints
+- Component dependencies
+
+### `lc config generate`
+
+Generate a default configuration file.
+
+```bash
+lc config generate [project-name] [project-type]
+
+# Examples
+lc config generate                  # Generate default config
+lc config generate my-app           # Generate with custom name
+lc config generate my-app chat      # Generate with name and type
+```
+
+**Project Types**:
+- `chat` - ChatGPT-like interface
+- `api` - REST API backend
+- `rag` - RAG (Retrieval Augmented Generation) system
+- `fullstack` - Full-stack application
+- `custom` - Custom configuration
+
+## Configuration File Structure
+
+LocalCloud uses YAML configuration files stored in `.localcloud/config.yaml`:
+
+### Basic Structure
+
+```yaml
+# Project metadata
+project:
+  name: my-ai-app
+  type: chat
+  version: "1.0.0"
+  description: "AI chat application"
+
+# Service configurations
+services:
+  # AI service (Ollama)
+  ai:
+    type: ollama
+    version: latest
+    port: 11434
+    models:
+      - name: llama3.2:3b
+        default: true
+    resources:
+      memory: 4GB
+      cpu: 2
+
+  # Database service (PostgreSQL)
+  database:
+    type: postgresql
+    version: "16"
+    port: 5432
+    username: localcloud
+    password: localcloud
+    database: localcloud
+    extensions:
+      - pgvector
+      - pg_trgm
+    resources:
+      memory: 1GB
+      storage: 10GB
+
+  # Cache service (Redis)
+  cache:
+    type: redis
+    version: "7"
+    port: 6379
+    persistence: true
+    resources:
+      memory: 512MB
+
+  # Storage service (MinIO)
+  storage:
+    type: minio
+    version: latest
+    api_port: 9000
+    console_port: 9001
+    access_key: minioadmin
+    secret_key: minioadmin
+    resources:
+      storage: 20GB
+
+# Component settings
+components:
+  llm:
+    enabled: true
+    model: llama3.2:3b
+  
+  vector:
+    enabled: true
+    dimension: 384
+    
+  mongodb:
+    enabled: false
+
+# Environment settings
+environment:
+  development:
+    log_level: debug
+    auto_reload: true
+  
+  production:
+    log_level: info
+    auto_reload: false
+
+# Network settings
+network:
+  internal_network: localcloud_default
+  expose_ports: true
+  tunneling:
+    enabled: false
+    provider: cloudflare
+```
+
+### MongoDB Configuration
+
+```yaml
+services:
+  mongodb:
+    type: mongodb
+    version: "7.0"
+    port: 27017
+    replica_set: false
+    auth_enabled: true
+    username: localcloud
+    password: localcloud
+    databases:
+      - name: localcloud
+        collections:
+          - name: users
+            indices:
+              - field: email
+                unique: true
+          - name: documents
+            indices:
+              - fields: [title, content]
+                type: text
+    resources:
+      memory: 1GB
+      storage: 10GB
+```
+
+### Advanced AI Configuration
+
+```yaml
+services:
+  ai:
+    type: ollama
+    models:
+      # Language models
+      - name: llama3.2:3b
+        type: llm
+        default: true
+      - name: mistral:7b
+        type: llm
+      
+      # Embedding models
+      - name: all-minilm:l6-v2
+        type: embedding
+        default: true
+    
+    # Model-specific settings
+    model_settings:
+      llama3.2:3b:
+        temperature: 0.7
+        max_tokens: 2048
+        context_length: 4096
+      
+      mistral:7b:
+        temperature: 0.8
+        max_tokens: 4096
+        context_length: 8192
+```
+
+## Examples
+
+### View Current Configuration
+
+```bash
+lc config show
+```
+
+Output:
+```
+Configuration File: /path/to/project/.localcloud/config.yaml
+
+Project:
+  Name: my-ai-app
+  Type: chat
+  Version: 1.0.0
+
+Services:
+   AI (Ollama)     - Port 11434
+   Database        - Port 5432
+   Cache           - Port 6379
+  Ë Storage         - Disabled
+
+Components:
+   LLM            - llama3.2:3b
+   Vector         - 384 dimensions
+  Ë MongoDB        - Disabled
+```
+
+### Validate Configuration
+
+```bash
+lc config validate
+```
+
+Output (success):
+```
+ Configuration file syntax is valid
+ All required fields are present
+ Service configurations are correct
+ No port conflicts detected
+ Resource allocations are reasonable
+ Component dependencies satisfied
+
+Configuration is valid!
+```
+
+Output (with errors):
+```
+ Invalid YAML syntax on line 15
+ Missing required field: services.database.port
+  Port 5432 is already in use
+  Memory allocation exceeds available RAM
+
+Found 2 errors and 2 warnings.
+```
+
+### Generate Default Configuration
+
+```bash
+# Generate basic config
+lc config generate
+
+# Generate for specific project
+lc config generate my-chat-app chat
+
+# Generate for API project
+lc config generate my-api api
+```
+
+## Configuration Templates
+
+### Chat Application
+
+```yaml
+project:
+  name: chat-app
+  type: chat
+
+services:
+  ai:
+    type: ollama
+    models:
+      - name: llama3.2:3b
+        default: true
+  
+  database:
+    type: postgresql
+    extensions: [pgvector]
+  
+  cache:
+    type: redis
+
+components:
+  llm: { enabled: true }
+  vector: { enabled: true }
+  cache: { enabled: true }
+```
+
+### API Backend
+
+```yaml
+project:
+  name: api-backend
+  type: api
+
+services:
+  ai:
+    type: ollama
+    models:
+      - name: mistral:7b
+        default: true
+  
+  database:
+    type: postgresql
+  
+  mongodb:
+    type: mongodb
+    
+  cache:
+    type: redis
+
+components:
+  llm: { enabled: true }
+  database: { enabled: true }
+  mongodb: { enabled: true }
+  cache: { enabled: true }
+```
+
+### RAG System
+
+```yaml
+project:
+  name: rag-system
+  type: rag
+
+services:
+  ai:
+    type: ollama
+    models:
+      - name: llama3.2:7b
+        type: llm
+        default: true
+      - name: all-minilm:l6-v2
+        type: embedding
+        default: true
+  
+  database:
+    type: postgresql
+    extensions: [pgvector, pg_trgm]
+  
+  storage:
+    type: minio
+
+components:
+  llm: { enabled: true }
+  embedding: { enabled: true }
+  vector: { enabled: true, dimension: 384 }
+  storage: { enabled: true }
+```
+
+## Environment Variables
+
+Configuration values can be overridden with environment variables:
+
+```bash
+# Override service ports
+export LOCALCLOUD_AI_PORT=11435
+export LOCALCLOUD_DB_PORT=5433
+
+# Override model settings
+export LOCALCLOUD_DEFAULT_MODEL=mistral:7b
+
+# Override resource limits
+export LOCALCLOUD_AI_MEMORY=8GB
+export LOCALCLOUD_DB_MEMORY=2GB
+```
+
+## Best Practices
+
+### Configuration Management
+
+1. **Version Control**: Commit config files to version control
+2. **Environment Separation**: Use different configs for dev/prod
+3. **Validation**: Always validate after manual edits
+4. **Backup**: Keep backups of working configurations
+
+### Resource Planning
+
+```yaml
+# Development environment
+resources:
+  total_memory: 8GB
+  allocation:
+    ai: 4GB      # 50%
+    database: 2GB # 25%
+    cache: 512MB  # 6%
+    other: 1.5GB  # 19%
+
+# Production environment
+resources:
+  total_memory: 32GB
+  allocation:
+    ai: 16GB     # 50%
+    database: 8GB # 25%
+    cache: 2GB    # 6%
+    other: 6GB    # 19%
+```
+
+### Security Configuration
+
+```yaml
+# Secure defaults
+services:
+  database:
+    password: !env DB_PASSWORD
+    ssl_mode: require
+  
+  mongodb:
+    auth_enabled: true
+    password: !env MONGO_PASSWORD
+  
+  storage:
+    access_key: !env MINIO_ACCESS_KEY
+    secret_key: !env MINIO_SECRET_KEY
+
+# Network security
+network:
+  expose_ports: false  # Don't expose to public
+  internal_only: true
+```
+
+## Troubleshooting
+
+### Invalid Configuration
+
+```bash
+Error: invalid configuration: missing required field 'services'
+```
+
+**Solution**: Run `lc config generate` to create a valid template
+
+### Port Conflicts
+
+```bash
+Error: port 5432 is already in use
+```
+
+**Solutions**:
+1. Change port in config: `services.database.port: 5433`
+2. Stop conflicting service
+3. Use `lc config validate` to check for conflicts
+
+### Resource Limits
+
+```bash
+Warning: total memory allocation (12GB) exceeds available (8GB)
+```
+
+**Solutions**:
+1. Reduce individual service memory limits
+2. Disable unused services
+3. Use smaller AI models
+
+## Related Commands
+
+- [`lc setup`](/cli/setup) - Interactive configuration setup
+- [`lc doctor`](/cli/doctor) - Validate system and configuration
+- [`lc info`](/cli/info) - Show resource usage
+- [`lc start`](/cli/start) - Start services with configuration
+- [`lc component`](/cli/component) - Manage components

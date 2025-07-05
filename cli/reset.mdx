@@ -1,0 +1,521 @@
+---
+title: 'lc reset'
+description: 'Reset LocalCloud to clean state with various levels of cleanup'
+icon: 'arrow-rotate-left'
+---
+
+# lc reset
+
+Reset your LocalCloud project to a clean state. Choose from different reset levels based on how much you want to preserve or remove.
+
+## Usage
+
+```bash
+lc reset [flags]
+```
+
+## Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--keep-data` | Keep data volumes and databases | `true` |
+| `--hard` | Remove everything including data and config | `false` |
+| `--destroy` | Complete project destruction (removes everything) | `false` |
+| `--yes`, `-y` | Skip confirmation prompts | `false` |
+| `--keep-models` | Keep AI models during reset | `true` |
+
+<Warning>
+    Reset operations are **IRREVERSIBLE**. Always backup important data before running reset commands.
+</Warning>
+
+## Reset Levels
+
+### 1. Soft Reset (Default)
+
+The safest reset option that preserves your data.
+
+```bash
+lc reset
+```
+
+**What gets removed:**
+-  Stop all running services
+-  Remove service containers
+-  Clear container logs
+
+**What gets preserved:**
+-  Data volumes (databases, storage)
+-  Configuration files
+-  AI models
+-  Project structure
+
+**Use when:**
+- Services are misbehaving
+- Need to restart cleanly
+- Containers are corrupted
+- Want to change service versions
+
+### 2. Hard Reset
+
+More aggressive cleanup that removes data and configuration.
+
+```bash
+lc reset --hard
+```
+
+**What gets removed:**
+-  Everything from soft reset
+-  Data volumes and databases
+-  Configuration files
+-  AI models (unless `--keep-models`)
+-  Log files and temporary data
+
+**What gets preserved:**
+-  Project directory structure
+-  Docker networks (shared)
+
+**Use when:**
+- Complete fresh start needed
+- Configuration is corrupted
+- Want to reclaim disk space
+- Starting new project type
+
+### 3. Destroy (Complete Removal)
+
+**  MOST DESTRUCTIVE** - Complete project destruction.
+
+```bash
+lc reset --destroy
+```
+
+**What gets removed:**
+-  Everything from hard reset
+-  Docker networks
+-  Project metadata
+-  All LocalCloud traces
+
+**Confirmation required:**
+- Must type `DESTROY` to confirm
+- Cannot be undone
+
+**Use when:**
+- Completely removing LocalCloud
+- Major system cleanup
+- Corrupted installation
+- Starting from scratch
+
+## Examples
+
+### Basic Soft Reset
+
+```bash
+lc reset
+```
+
+**Interactive Confirmation:**
+```
+LocalCloud Reset
+
+
+Reset Type: Soft Reset (preserve data)
+
+The following will be removed:
+ Service containers
+ Container logs
+
+The following will be preserved:
+ Data volumes (databases, storage)
+ Configuration files  
+ AI models
+ Project structure
+
+Are you sure you want to continue? (y/N): y
+
+Stopping services...
+ Stopped ollama service
+ Stopped postgres service  
+ Stopped redis service
+ Stopped minio service
+
+Removing containers...
+ Removed localcloud-ollama-1
+ Removed localcloud-postgres-1
+ Removed localcloud-redis-1
+ Removed localcloud-minio-1
+
+Reset completed successfully!
+
+Next steps:
+- Run 'lc start' to restart services
+- Your data and configuration are preserved
+```
+
+### Hard Reset with Model Preservation
+
+```bash
+lc reset --hard --keep-models
+```
+
+**Output:**
+```
+LocalCloud Reset
+
+
+Reset Type: Hard Reset (keep models)
+
+The following will be removed:
+ Service containers
+ Data volumes (3.2GB)
+ Configuration files
+ Log files
+
+The following will be preserved:
+ AI models (7.1GB)
+ Project directory
+
+This will free up approximately 3.2GB of disk space.
+Are you sure you want to continue? (y/N): y
+
+Stopping services...
+ Stopped all services
+
+Removing containers...
+ Removed all containers
+
+Removing data volumes...
+ Removed postgres-data (1.2GB)
+ Removed minio-data (2.0GB)
+
+Removing configuration...
+ Removed .localcloud/config.yaml
+ Removed .localcloud/logs/
+
+Reset completed successfully!
+
+Next steps:
+- Run 'lc setup' to reconfigure project
+- Your AI models are preserved
+```
+
+### Complete Destruction
+
+```bash
+lc reset --destroy
+```
+
+**Interactive Confirmation:**
+```
+LocalCloud Reset
+
+
+   DANGER: Complete Project Destruction
+
+This will PERMANENTLY remove:
+ All service containers
+ All data volumes (3.2GB)
+ All configuration files
+ All AI models (7.1GB)  
+ Docker networks
+ Project metadata
+
+Total data removal: 10.3GB
+
+This action cannot be undone!
+
+To confirm, type 'DESTROY': DESTROY
+
+Destroying LocalCloud project...
+
+Stopping all services...
+ Stopped all containers
+
+Removing all data...
+ Removed all containers
+ Removed all volumes (3.2GB freed)
+ Removed all models (7.1GB freed)
+ Removed configuration
+ Removed networks
+ Removed project metadata
+
+LocalCloud project completely destroyed.
+
+Next steps:
+- Run 'lc init' to create a new project
+- Total disk space freed: 10.3GB
+```
+
+## Skip Confirmation
+
+For automated scripts or when you're certain:
+
+```bash
+# Soft reset without confirmation
+lc reset --yes
+
+# Hard reset without confirmation  
+lc reset --hard --yes
+
+# Destroy without typing confirmation (still requires --yes)
+lc reset --destroy --yes
+```
+
+## Reset Scenarios
+
+### Fix Corrupted Services
+
+```bash
+# Services won't start or behave strangely
+lc reset
+lc start
+
+# Check if services are healthy
+lc status
+```
+
+### Reclaim Disk Space
+
+```bash
+# Remove data but keep models
+lc reset --hard --keep-models
+
+# Remove everything
+lc reset --hard
+
+# Check freed space
+lc info
+```
+
+### Change Project Configuration
+
+```bash
+# Reset to reconfigure
+lc reset --hard
+
+# Setup new configuration
+lc setup
+
+# Start with new config
+lc start
+```
+
+### Complete Fresh Start
+
+```bash
+# Remove everything
+lc reset --destroy
+
+# Initialize new project
+lc init
+
+# Setup fresh configuration
+lc setup
+```
+
+## What Gets Reset
+
+### Containers
+
+| Reset Level | Containers |
+|-------------|------------|
+| Soft | Stopped and removed |
+| Hard | Stopped and removed |
+| Destroy | Stopped and removed |
+
+### Data Volumes
+
+| Reset Level | Database | Storage | Logs |
+|-------------|----------|---------|------|
+| Soft |  Kept |  Kept |  Removed |
+| Hard |  Removed |  Removed |  Removed |
+| Destroy |  Removed |  Removed |  Removed |
+
+### Configuration
+
+| Reset Level | Config Files | Project Dir | Models |
+|-------------|--------------|-------------|---------|
+| Soft |  Kept |  Kept |  Kept |
+| Hard |  Removed |  Kept |  Kept* |
+| Destroy |  Removed |  Removed |  Removed |
+
+*Models kept only with `--keep-models` flag
+
+### Networks
+
+| Reset Level | Docker Networks |
+|-------------|----------------|
+| Soft |  Kept |
+| Hard |  Kept |
+| Destroy |  Removed |
+
+## Pre-Reset Checklist
+
+### Before Any Reset
+
+1. **Backup Important Data**
+   ```bash
+   # Export database
+   lc exec postgres pg_dump localcloud > backup.sql
+   
+   # Backup storage files
+   lc exec minio mc mirror /data/minio ~/minio-backup
+   ```
+
+2. **Note Current Configuration**
+   ```bash
+   # Save current config
+   cp .localcloud/config.yaml config-backup.yaml
+   
+   # List current models
+   lc models list > models-backup.txt
+   ```
+
+3. **Check Disk Usage**
+   ```bash
+   # See what will be removed
+   lc info
+   docker system df
+   ```
+
+### Before Hard Reset
+
+1. **Export Critical Data**
+   ```bash
+   # Database dump
+   lc exec postgres pg_dump -U localcloud localcloud > db-backup.sql
+   
+   # MongoDB dump  
+   lc exec mongodb mongodump --out /backup
+   ```
+
+2. **Save Model List**
+   ```bash
+   # Note which models to re-download
+   lc models list --format=names > models-to-reinstall.txt
+   ```
+
+### Before Destroy
+
+1. **Complete Backup**
+   ```bash
+   # Create full project backup
+   tar -czf project-backup.tar.gz .localcloud/ *.sql *.txt
+   ```
+
+2. **Document Setup**
+   ```bash
+   # Save setup documentation
+   lc config show > project-setup.txt
+   lc component list > components.txt
+   ```
+
+## Post-Reset Recovery
+
+### After Soft Reset
+
+```bash
+# Simply restart services
+lc start
+
+# Verify everything works
+lc status
+lc doctor
+```
+
+### After Hard Reset
+
+```bash
+# Reconfigure project
+lc setup
+
+# Restore data if backed up
+lc start
+lc exec postgres psql -U localcloud -d localcloud < backup.sql
+
+# Reinstall models
+lc models pull llama3.2:3b
+```
+
+### After Destroy
+
+```bash
+# Start completely fresh
+lc init my-project
+cd my-project
+lc setup
+
+# Restore from backup if needed
+lc start
+# ... restore data and models
+```
+
+## Troubleshooting
+
+### Reset Fails
+
+```bash
+Error: cannot remove container: container is running
+```
+
+**Solutions:**
+1. Force stop services: `lc stop --force`
+2. Kill containers: `docker kill $(docker ps -q)`
+3. Try reset again: `lc reset`
+
+### Docker Permission Issues
+
+```bash
+Error: permission denied
+```
+
+**Solutions:**
+1. Use sudo: `sudo lc reset`
+2. Fix Docker permissions: `sudo chmod 666 /var/run/docker.sock`
+3. Add user to docker group: `sudo usermod -aG docker $USER`
+
+### Partial Reset Completion
+
+```bash
+Warning: some resources could not be removed
+```
+
+**Solutions:**
+1. Check what remains: `lc ps -a`
+2. Manual cleanup: `docker system prune -a`
+3. Restart Docker service
+4. Try reset again
+
+## Safety Features
+
+### Confirmation Prompts
+
+- **Soft Reset**: Simple yes/no confirmation
+- **Hard Reset**: Shows what will be removed + size
+- **Destroy**: Requires typing "DESTROY"
+
+### Dry Run Mode
+
+```bash
+# See what would be removed (proposed feature)
+lc reset --dry-run
+lc reset --hard --dry-run
+```
+
+### Backup Suggestions
+
+Reset command automatically suggests backup commands:
+
+```
+=¡ Tip: Consider backing up your data first:
+   lc exec postgres pg_dump localcloud > backup.sql
+   
+   To restore later:
+   lc exec postgres psql -U localcloud -d localcloud < backup.sql
+```
+
+## Related Commands
+
+- [`lc start`](/cli/start) - Start services after reset
+- [`lc setup`](/cli/setup) - Reconfigure after reset
+- [`lc doctor`](/cli/doctor) - Verify system health
+- [`lc status`](/cli/status) - Check service status
+- [`lc info`](/cli/info) - View disk usage and resources
