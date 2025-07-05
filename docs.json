@@ -92,6 +92,18 @@
               {
                 "title": "Component",
                 "href": "cli/component"
+              },
+              {
+                "title": "Database",
+                "href": "cli/database"
+              },
+              {
+                "title": "Vector",
+                "href": "cli/vector"
+              },
+              {
+                "title": "Export",
+                "href": "cli/export"
               }
             ]
           },
@@ -196,7 +208,7 @@
       "anchors": [
         {
           "anchor": "Documentation",
-          "href": "https://docs.localcloud.ai",
+          "href": "https://docs.localcloud.sh",
           "icon": "book-open-cover"
         },
         {
