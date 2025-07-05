@@ -207,11 +207,6 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://docs.localcloud.sh",
-          "icon": "book-open-cover"
-        },
-        {
           "anchor": "GitHub",
           "href": "https://github.com/localcloud-sh/localcloud",
           "icon": "github"
