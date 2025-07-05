@@ -147,9 +147,6 @@
               "cli/services",
               "cli/logs",
               "cli/ps",
-              "cli/services",
-              "cli/logs",
-              "cli/ps",
               "cli/component"
             ]
           },
