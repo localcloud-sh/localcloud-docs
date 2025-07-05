@@ -1,0 +1,206 @@
+---
+title: 'Database Commands'
+description: 'PostgreSQL database management and operations'
+icon: 'database'
+---
+
+# Database Commands
+
+LocalCloud provides convenient commands for managing your PostgreSQL database instance.
+
+## Connect to Database
+
+Access the PostgreSQL shell directly:
+
+```bash
+# Connect to the database
+lc database connect
+
+# Or use the shorter alias
+lc db connect
+```
+
+This opens a `psql` session connected to your LocalCloud PostgreSQL instance with the default credentials:
+- **Host**: `localhost`
+- **Port**: `5432`
+- **Database**: `localcloud`
+- **Username**: `localcloud`
+- **Password**: `localcloud`
+
+## Database Operations
+
+### Backup Database
+
+Create a backup of your current database:
+
+```bash
+# Create a backup with timestamp
+lc database backup
+
+# Specify custom backup name
+lc database backup my-backup.sql
+
+# Backup specific tables only
+lc database backup --tables users,posts
+```
+
+### Restore Database
+
+Restore from a backup file:
+
+```bash
+# Restore from backup
+lc database restore backup-20241205.sql
+
+# Restore and replace existing data
+lc database restore backup.sql --force
+```
+
+### Run Migrations
+
+Execute SQL migration files:
+
+```bash
+# Run all pending migrations
+lc database migrate
+
+# Run specific migration file
+lc database migrate ./migrations/001_create_users.sql
+
+# Check migration status
+lc database migrate --status
+```
+
+## Database Information
+
+### Show Database Status
+
+```bash
+# Show database connection info
+lc database info
+
+# Check database size and stats
+lc database stats
+```
+
+### List Tables
+
+```bash
+# List all tables
+lc database tables
+
+# Show table details
+lc database describe users
+```
+
+## Examples
+
+### Basic Database Setup
+
+```bash
+# Start database service
+lc start postgres
+
+# Connect and create a table
+lc database connect
+```
+
+In the PostgreSQL shell:
+```sql
+-- Create a simple table
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Insert sample data
+INSERT INTO users (name, email) VALUES 
+    ('Alice', 'alice@example.com'),
+    ('Bob', 'bob@example.com');
+
+-- Query data
+SELECT * FROM users;
+```
+
+### Working with Backups
+
+```bash
+# Create a backup before making changes
+lc database backup pre-migration-backup.sql
+
+# Make your database changes
+lc database migrate
+
+# If something goes wrong, restore
+lc database restore pre-migration-backup.sql
+```
+
+## Configuration
+
+Database settings can be configured in `.localcloud/config.yaml`:
+
+```yaml
+services:
+  database:
+    port: 5432
+    memory_limit: 1GB
+    extensions:
+      - pgvector  # For vector search
+      - pg_trgm   # For full-text search
+```
+
+## Troubleshooting
+
+### Connection Issues
+
+```bash
+# Check if database is running
+lc status postgres
+
+# View database logs
+lc logs postgres
+
+# Restart database service
+lc restart postgres
+```
+
+### Common Errors
+
+**Permission denied**:
+```bash
+# Reset database permissions
+lc database reset-permissions
+```
+
+**Database doesn't exist**:
+```bash
+# Recreate the database
+lc database create localcloud
+```
+
+**Port already in use**:
+```bash
+# Use a different port
+lc start postgres --port 5433
+```
+
+## Related Commands
+
+- [`lc vector`](/cli/vector) - Vector database operations
+- [`lc mongo`](/cli/mongo) - MongoDB operations
+- [`lc status`](/cli/status) - Check service status
+- [`lc logs`](/cli/logs) - View service logs
+
+## Connection String
+
+For use in your applications:
+
+```bash
+# PostgreSQL connection string
+postgresql://localcloud:localcloud@localhost:5432/localcloud
+
+# With SSL (if enabled)
+postgresql://localcloud:localcloud@localhost:5432/localcloud?sslmode=require
+```

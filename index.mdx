@@ -34,11 +34,11 @@ LocalCloud revolutionizes AI development by providing a complete, local-first de
         Everything runs locally - no API fees, no usage limits, no surprise bills
     </Card>
     <Card
-        title="Production-Ready Templates"
+        title="Available Services"
         icon="layer-group"
-        href="/examples/ai-chat"
+        href="/services/ollama"
     >
-        Pre-built backends for chat assistants, RAG systems, and speech processing
+        Learn about the AI, database, and infrastructure services available
     </Card>
     <Card
         title="Runs on 4GB RAM"
@@ -58,14 +58,13 @@ Get your first AI application running in under 5 minutes:
 brew install localcloud-sh/tap/localcloud
 
 # Or use the install script
-curl -fsSL https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh | bash
+curl -fsSL https://localcloud.sh/install | bash
 
-# Create a new project
-lc init my-assistant
-
-# Configure and start services
+# Create and configure a new project
+lc setup my-assistant
 cd my-assistant
-lc setup
+
+# Start all services
 lc start
 ```
 
@@ -119,11 +118,11 @@ Students and developers can experiment with cutting-edge AI models without worry
     <Card title="GitHub" icon="github" href="https://github.com/localcloud-sh/localcloud">
         Star us on GitHub and contribute to the project
     </Card>
-    <Card title="Discord" icon="discord" href="https://discord.gg/localcloud">
-        Join our Discord community for support and discussions
+    <Card title="Contact" icon="envelope" href="mailto:dev@localcloud.sh">
+        Get in touch for support and collaboration
     </Card>
-    <Card title="Twitter" icon="x-twitter" href="https://twitter.com/localcloudai">
-        Follow us for updates and announcements
+    <Card title="Discussions" icon="message-circle" href="https://github.com/localcloud-sh/localcloud/discussions">
+        Join community discussions and share ideas
     </Card>
 </CardGroup>
 
@@ -138,10 +137,10 @@ Students and developers can experiment with cutting-edge AI models without worry
         Install LocalCloud on macOS, Linux, or Windows
     </Card>
     <Card
-        title="Browse Templates"
+        title="Quickstart Guide"
         icon="rectangle-terminal"
-        href="/examples/ai-chat"
+        href="/getting-started/quickstart"
     >
-        Explore pre-built application templates
+        Follow our step-by-step quickstart guide
     </Card>
 </CardGroup>

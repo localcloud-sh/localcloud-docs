@@ -1,0 +1,290 @@
+---
+title: 'Vector Commands'
+description: 'Vector database operations with pgvector'
+icon: 'magnifying-glass'
+---
+
+# Vector Commands
+
+LocalCloud provides specialized commands for managing vector operations with pgvector extension in PostgreSQL.
+
+## Enable Vector Search
+
+Add vector search capabilities to your database:
+
+```bash
+# Enable pgvector extension
+lc vector enable
+
+# Check if vector extension is enabled
+lc vector status
+```
+
+## Vector Operations
+
+### Create Vector Tables
+
+```bash
+# Create a table with vector column
+lc vector create-table documents --dimensions 384
+
+# Create with custom configuration
+lc vector create-table embeddings \
+  --dimensions 1536 \
+  --index-type ivfflat \
+  --lists 100
+```
+
+### Generate Embeddings
+
+```bash
+# Generate embeddings for text
+lc vector embed "Hello world" --model nomic-embed-text
+
+# Embed multiple texts from file
+lc vector embed-file texts.txt --output embeddings.json
+
+# Embed and store in database
+lc vector embed "Sample text" --store --table documents --id doc1
+```
+
+### Vector Search
+
+```bash
+# Search for similar vectors
+lc vector search "query text" --table documents --limit 10
+
+# Search with similarity threshold
+lc vector search "query text" \
+  --table documents \
+  --threshold 0.8 \
+  --limit 5
+
+# Search using vector directly
+lc vector search-vector "[0.1, 0.2, 0.3, ...]" --table documents
+```
+
+## Index Management
+
+### Create Vector Indexes
+
+```bash
+# Create IVFFlat index (recommended for most cases)
+lc vector create-index documents_embedding_idx \
+  --table documents \
+  --column embedding \
+  --type ivfflat \
+  --lists 100
+
+# Create HNSW index (for high recall)
+lc vector create-index documents_embedding_idx \
+  --table documents \
+  --column embedding \
+  --type hnsw \
+  --m 16 \
+  --ef-construction 64
+```
+
+### Index Information
+
+```bash
+# List all vector indexes
+lc vector indexes
+
+# Show index statistics
+lc vector index-stats documents_embedding_idx
+
+# Rebuild index
+lc vector rebuild-index documents_embedding_idx
+```
+
+## RAG (Retrieval-Augmented Generation)
+
+### Document Processing
+
+```bash
+# Process and store documents
+lc vector ingest documents/ \
+  --table knowledge_base \
+  --chunk-size 512 \
+  --overlap 50
+
+# Process specific file types
+lc vector ingest docs/ \
+  --types "pdf,txt,md" \
+  --table documents
+```
+
+### Query Documents
+
+```bash
+# Query knowledge base
+lc vector query "What is LocalCloud?" \
+  --table knowledge_base \
+  --context-length 3
+
+# Query with metadata filtering
+lc vector query "AI models" \
+  --table documents \
+  --filter "category='AI'"
+```
+
+## Configuration
+
+Vector settings in `.localcloud/config.yaml`:
+
+```yaml
+services:
+  database:
+    extensions:
+      - pgvector
+    vector:
+      default_dimensions: 384
+      embedding_model: "nomic-embed-text"
+      index_type: "ivfflat"
+      similarity_metric: "cosine"
+```
+
+## Examples
+
+### Setting Up a Knowledge Base
+
+```bash
+# 1. Enable vector search
+lc vector enable
+
+# 2. Create a documents table
+lc vector create-table documents --dimensions 384
+
+# 3. Create an index for fast search
+lc vector create-index docs_idx \
+  --table documents \
+  --column embedding \
+  --type ivfflat
+
+# 4. Ingest documents
+lc vector ingest ./knowledge/ --table documents
+
+# 5. Query the knowledge base
+lc vector query "How do I setup LocalCloud?" --table documents
+```
+
+### Working with Custom Embeddings
+
+```bash
+# Generate embeddings for a list of texts
+echo "Text 1\nText 2\nText 3" | lc vector embed-batch \
+  --model nomic-embed-text \
+  --output embeddings.jsonl
+
+# Insert custom embeddings
+lc vector insert-embedding \
+  --table documents \
+  --text "Custom document" \
+  --embedding "[0.1, 0.2, ...]" \
+  --metadata '{"source": "manual"}'
+```
+
+### Similarity Search Examples
+
+```sql
+-- Direct SQL for advanced users
+SELECT content, 1 - (embedding <=> '[0.1,0.2,0.3]'::vector) as similarity
+FROM documents 
+WHERE 1 - (embedding <=> '[0.1,0.2,0.3]'::vector) > 0.8
+ORDER BY embedding <=> '[0.1,0.2,0.3]'::vector 
+LIMIT 10;
+```
+
+## Distance Metrics
+
+pgvector supports multiple distance metrics:
+
+```bash
+# Cosine distance (default, good for normalized embeddings)
+lc vector search "query" --metric cosine
+
+# Euclidean distance (L2)
+lc vector search "query" --metric l2
+
+# Inner product (for specific use cases)
+lc vector search "query" --metric inner_product
+```
+
+## Performance Tips
+
+### Indexing Guidelines
+
+```bash
+# For datasets < 1M vectors: use IVFFlat
+lc vector create-index --type ivfflat --lists 1000
+
+# For datasets > 1M vectors: use HNSW
+lc vector create-index --type hnsw --m 16 --ef-construction 64
+
+# Check index usage
+lc vector analyze-performance --table documents
+```
+
+### Optimization
+
+```bash
+# Vacuum and analyze after bulk inserts
+lc vector maintenance --table documents
+
+# Update index statistics
+lc vector update-stats --table documents
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**pgvector extension not found**:
+```bash
+# Check if pgvector is available
+lc vector check-extension
+
+# Reinstall if needed
+lc vector install-extension
+```
+
+**Slow search performance**:
+```bash
+# Check if indexes exist
+lc vector indexes --table documents
+
+# Analyze query performance
+lc vector explain-query "search text" --table documents
+```
+
+**Dimension mismatch**:
+```bash
+# Check embedding dimensions
+lc vector info --table documents
+
+# Verify embedding model dimensions
+lc vector model-info nomic-embed-text
+```
+
+## Related Commands
+
+- [`lc database`](/cli/database) - Database operations
+- [`lc models`](/cli/models) - AI model management
+- [`lc status`](/cli/status) - Service status
+- [`lc logs`](/cli/logs) - View logs
+
+## Integration with AI Models
+
+Vector search works seamlessly with LocalCloud's AI models:
+
+```bash
+# Use embeddings from local model
+lc vector embed "query" --model nomic-embed-text
+
+# Generate response with RAG
+lc vector rag-query "What is LocalCloud?" \
+  --knowledge-base documents \
+  --llm llama3.2:3b \
+  --max-context 3
+```

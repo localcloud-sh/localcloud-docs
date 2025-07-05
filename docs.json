@@ -9,6 +9,7 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
+    "primaryTab": "Documentation",
     "tabs": [
       {
         "tab": "Documentation",
@@ -87,6 +88,10 @@
               {
                 "title": "MongoDB",
                 "href": "cli/mongo"
+              },
+              {
+                "title": "Component",
+                "href": "cli/component"
               }
             ]
           },
@@ -142,19 +147,28 @@
               "cli/services",
               "cli/logs",
               "cli/ps",
+              "cli/services",
+              "cli/logs",
+              "cli/ps",
               "cli/component"
             ]
           },
           {
             "group": "Database Management",
             "pages": [
-              "cli/mongo"
+              "cli/mongo",
+              "cli/database",
+              "cli/vector"
             ]
           },
           {
             "group": "Networking",
             "pages": [
-              "cli/tunnel"
+              {
+                "title": "Tunnel",
+                "href": "cli/tunnel",
+                "icon": "globe"
+              }
             ]
           },
           {
@@ -174,24 +188,25 @@
             "pages": [
               "cli/info",
               "cli/doctor",
-              "cli/reset"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Examples",
-        "groups": [
-          {
-            "group": "Templates",
-            "pages": [
-              "examples/ai-chat",
-              "examples/database",
-              "examples/storage"
+              "cli/reset",
+              "cli/export"
             ]
           }
         ]
       }
+      // {
+      //   "tab": "Examples",
+      //   "groups": [
+      //     {
+      //       "group": "Templates",
+      //       "pages": [
+      //         "examples/ai-chat",
+      //         "examples/database",
+      //         "examples/storage"
+      //       ]
+      //     }
+      //   ]
+      // }
     ],
     "global": {
       "anchors": [

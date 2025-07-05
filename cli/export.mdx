@@ -1,0 +1,355 @@
+---
+title: 'Export Commands'
+description: 'Export LocalCloud configurations and data'
+icon: 'download'
+---
+
+# Export Commands
+
+LocalCloud provides export functionality to backup configurations, share setups, and migrate projects.
+
+## Export Project Configuration
+
+Export your project setup for sharing or backup:
+
+```bash
+# Export current project configuration
+lc export config
+
+# Export to specific file
+lc export config --output my-project-config.yaml
+
+# Export with services data
+lc export config --include-data
+```
+
+## Export Types
+
+### Configuration Only
+
+```bash
+# Export just the configuration
+lc export config --type config-only
+
+# This exports:
+# - Service selections
+# - Port configurations
+# - Model choices
+# - Resource limits
+```
+
+### Full Project Export
+
+```bash
+# Export everything (config + data)
+lc export project --output my-project-backup.tar.gz
+
+# This includes:
+# - Configuration files
+# - Database dumps
+# - AI model data
+# - Custom configurations
+```
+
+### Service-Specific Exports
+
+```bash
+# Export specific service data
+lc export database --output db-backup.sql
+lc export models --output models-backup.tar
+lc export storage --output storage-backup.tar.gz
+
+# Export vector embeddings
+lc export vectors --table documents --output embeddings.jsonl
+```
+
+## Export Formats
+
+### YAML Configuration
+
+```bash
+# Export as YAML (default)
+lc export config --format yaml
+
+# Output example:
+# project:
+#   name: my-ai-app
+#   version: 1.0.0
+# services:
+#   ai:
+#     enabled: true
+#     model: llama3.2:3b
+#   database:
+#     enabled: true
+#     extensions: [pgvector]
+```
+
+### Docker Compose
+
+```bash
+# Export as Docker Compose file
+lc export docker-compose --output docker-compose.yml
+
+# This creates a portable Docker setup
+# that can run without LocalCloud CLI
+```
+
+### Kubernetes Manifests
+
+```bash
+# Export as Kubernetes manifests
+lc export k8s --output k8s-manifests/
+
+# Creates:
+# - Deployments
+# - Services
+# - ConfigMaps
+# - Persistent Volume Claims
+```
+
+## Import Exported Configurations
+
+### Import Project
+
+```bash
+# Import from exported configuration
+lc import config.yaml
+
+# Import and create new project
+lc import config.yaml --project new-project-name
+
+# Import specific services only
+lc import config.yaml --services ai,database
+```
+
+### Import with Validation
+
+```bash
+# Validate before importing
+lc import config.yaml --validate-only
+
+# Import with compatibility check
+lc import config.yaml --check-compatibility
+```
+
+## Export Options
+
+### Filtering
+
+```bash
+# Export specific services
+lc export config --services ai,database
+
+# Exclude sensitive data
+lc export config --exclude-secrets
+
+# Include only running services
+lc export config --running-only
+```
+
+### Compression
+
+```bash
+# Export with compression
+lc export project --compress --output backup.tar.gz
+
+# Different compression levels
+lc export project --compress --level 9 --output backup.tar.xz
+```
+
+## Sharing Configurations
+
+### Template Export
+
+```bash
+# Export as reusable template
+lc export template --name "AI Chat Assistant"
+
+# Templates exclude:
+# - Specific data
+# - Absolute paths
+# - Environment-specific settings
+```
+
+### Environment-Specific Exports
+
+```bash
+# Export for different environments
+lc export config --env development
+lc export config --env production --exclude-dev-tools
+```
+
+## Automated Exports
+
+### Scheduled Backups
+
+```bash
+# Set up automatic daily backups
+lc export schedule --daily --output-dir ./backups/
+
+# Weekly full project backups
+lc export schedule --weekly --type full-project
+```
+
+### Git Integration
+
+```bash
+# Export configuration to git
+lc export git --repo https://github.com/user/localcloud-configs
+
+# Commit configuration changes
+lc export git-commit --message "Updated AI model to llama3.2"
+```
+
+## Examples
+
+### Backup Before Major Changes
+
+```bash
+# Create a complete backup before upgrading
+lc export project --output "backup-$(date +%Y%m%d).tar.gz"
+
+# Upgrade LocalCloud
+lc upgrade
+
+# If something goes wrong, restore
+lc import "backup-20241205.tar.gz"
+```
+
+### Share Project Setup
+
+```bash
+# Export configuration for sharing
+lc export config --exclude-data --output ai-chat-template.yaml
+
+# Teammate imports the setup
+lc import ai-chat-template.yaml --project my-ai-chat
+```
+
+### Deploy to Production
+
+```bash
+# Export for production deployment
+lc export k8s \
+  --output production/ \
+  --env production \
+  --scale-replicas 3
+
+# Deploy to Kubernetes
+kubectl apply -f production/
+```
+
+### Migrate Between Machines
+
+```bash
+# On old machine: export everything
+lc export project --include-models --output full-backup.tar.gz
+
+# On new machine: install LocalCloud and import
+lc import full-backup.tar.gz
+```
+
+## Configuration Export Details
+
+The exported configuration includes:
+
+```yaml
+# Project metadata
+project:
+  name: my-ai-app
+  version: 1.0.0
+  created: 2024-12-05T10:30:00Z
+
+# Service configurations
+services:
+  ai:
+    enabled: true
+    model: llama3.2:3b
+    memory_limit: 2GB
+    port: 11434
+  
+  database:
+    enabled: true
+    port: 5432
+    extensions:
+      - pgvector
+    memory_limit: 1GB
+  
+  cache:
+    enabled: true
+    port: 6379
+    memory_limit: 256MB
+
+# Model information
+models:
+  - name: llama3.2:3b
+    size: 2.3GB
+    downloaded: true
+  - name: nomic-embed-text
+    size: 274MB
+    downloaded: true
+
+# Custom configurations
+custom:
+  environment_variables:
+    POSTGRES_MAX_CONNECTIONS: "100"
+  volumes:
+    - "./data:/app/data"
+```
+
+## Security Considerations
+
+### Sensitive Data
+
+```bash
+# Export without sensitive information
+lc export config --exclude-secrets --exclude-passwords
+
+# What gets excluded:
+# - Database passwords
+# - API keys
+# - Private keys
+# - User data
+```
+
+### Encryption
+
+```bash
+# Export with encryption
+lc export project --encrypt --password-file secret.key
+
+# Decrypt on import
+lc import encrypted-backup.tar.gz.enc --decrypt --password-file secret.key
+```
+
+## Troubleshooting
+
+### Export Failures
+
+```bash
+# Check export status
+lc export status
+
+# Resume failed export
+lc export resume export-123
+
+# Clean up partial exports
+lc export cleanup
+```
+
+### Large Exports
+
+```bash
+# Export with progress monitoring
+lc export project --progress --output large-backup.tar.gz
+
+# Split large exports
+lc export project --split 1GB --output-dir split-backup/
+```
+
+## Related Commands
+
+- [`lc import`](/cli/import) - Import configurations and data
+- [`lc backup`](/cli/backup) - Database backup operations
+- [`lc status`](/cli/status) - Check service status
+- [`lc config`](/cli/config) - Configuration management
