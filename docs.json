@@ -32,105 +32,42 @@
           {
             "group": "Using Services",
             "pages": [
-              {
-                "title": "AI Service (Ollama)",
-                "href": "services/ollama"
-              },
-              {
-                "title": "PostgreSQL",
-                "href": "services/postgresql"
-              },
-              {
-                "title": "MongoDB",
-                "href": "services/mongodb"
-              },
-              {
-                "title": "Redis",
-                "href": "services/redis"
-              },
-              {
-                "title": "MinIO",
-                "href": "services/minio"
-              }
+              "services/ollama",
+              "services/postgresql",
+              "services/mongodb",
+              "services/redis",
+              "services/minio"
             ]
           },
           {
             "group": "CLI Commands",
             "pages": [
-              {
-                "title": "Overview",
-                "href": "cli/overview"
-              },
-              {
-                "title": "Setup",
-                "href": "cli/setup"
-              },
-              {
-                "title": "Start/Stop",
-                "href": "cli/start"
-              },
-              {
-                "title": "Status",
-                "href": "cli/status"
-              },
-              {
-                "title": "Logs",
-                "href": "cli/logs"
-              },
-              {
-                "title": "Models",
-                "href": "cli/models"
-              },
-              {
-                "title": "Tunnel",
-                "href": "cli/tunnel"
-              },
-              {
-                "title": "MongoDB",
-                "href": "cli/mongo"
-              },
-              {
-                "title": "Component",
-                "href": "cli/component"
-              },
-              {
-                "title": "Database",
-                "href": "cli/database"
-              },
-              {
-                "title": "Vector",
-                "href": "cli/vector"
-              },
-              {
-                "title": "Export",
-                "href": "cli/export"
-              }
+              "cli/overview",
+              "cli/setup",
+              "cli/start",
+              "cli/status",
+              "cli/logs",
+              "cli/models",
+              "cli/tunnel",
+              "cli/mongo",
+              "cli/component",
+              "cli/database",
+              "cli/vector",
+              "cli/export"
             ]
           },
           {
             "group": "Configuration",
             "pages": [
-              {
-                "title": "Config YAML",
-                "href": "configuration/config-yaml"
-              },
-              {
-                "title": "Environment Variables",
-                "href": "configuration/environment"
-              }
+              "configuration/config-yaml",
+              "configuration/environment"
             ]
           },
           {
             "group": "Troubleshooting",
             "pages": [
-              {
-                "title": "Common Issues",
-                "href": "troubleshooting/common-issues"
-              },
-              {
-                "title": "FAQ",
-                "href": "troubleshooting/faq"
-              }
+              "troubleshooting/common-issues",
+              "troubleshooting/faq"
             ]
           }
         ]
@@ -173,11 +110,7 @@
           {
             "group": "Networking",
             "pages": [
-              {
-                "title": "Tunnel",
-                "href": "cli/tunnel",
-                "icon": "globe"
-              }
+              "cli/tunnel"
             ]
           },
           {
