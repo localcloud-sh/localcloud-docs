@@ -111,11 +111,7 @@
           {
             "group": "Networking",
             "pages": [
-              {
-                "title": "Tunnel",
-                "href": "cli/tunnel",
-                "icon": "globe"
-              }
+              "cli/tunnel"
             ]
           },
           {
