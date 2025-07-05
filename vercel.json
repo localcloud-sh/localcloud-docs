@@ -1,0 +1,34 @@
+{
+  "redirects": [
+    {
+      "source": "/install",
+      "destination": "https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh",
+      "permanent": false
+    },
+    {
+      "source": "/releases/darwin-arm64",
+      "destination": "https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-darwin-arm64.tar.gz",
+      "permanent": false
+    },
+    {
+      "source": "/releases/darwin-amd64",
+      "destination": "https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-darwin-amd64.tar.gz",
+      "permanent": false
+    },
+    {
+      "source": "/releases/linux-amd64",
+      "destination": "https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-linux-amd64.tar.gz",
+      "permanent": false
+    },
+    {
+      "source": "/releases/linux-arm64",
+      "destination": "https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-linux-arm64.tar.gz",
+      "permanent": false
+    },
+    {
+      "source": "/releases",
+      "destination": "https://github.com/localcloud-sh/localcloud/releases/latest",
+      "permanent": false
+    }
+  ]
+}

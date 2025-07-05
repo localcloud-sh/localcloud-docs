@@ -32,32 +32,50 @@ These flags are available for all commands:
 
 <CardGroup cols={2}>
     <Card title="Project Management" icon="folder">
-        Initialize, configure, and manage projects
-        - `lc setup`
-        - `lc status`
-        - `lc reset`
+        Initialize and manage your LocalCloud projects
+        - `lc setup` - Create new project with interactive wizard
+        - `lc status` - View project and service status
+        - `lc info` - System and resource information
+        - `lc reset` - Clean up project data
     </Card>
 
     <Card title="Service Control" icon="play">
-        Start, stop, and manage services
-        - `lc start`
-        - `lc stop`
-        - `lc services`
-        - `lc logs`
+        Start, stop, and monitor services
+        - `lc start` - Start all or specific services
+        - `lc stop` - Stop all or specific services
+        - `lc restart` - Restart services
+        - `lc services` - List running services
+        - `lc logs` - View service logs
+        - `lc ps` - Show running containers
     </Card>
 
     <Card title="AI Models" icon="robot">
-        Manage language models
-        - `lc models list`
-        - `lc models pull`
-        - `lc models remove`
+        Manage Ollama language models
+        - `lc models list` - Show available models
+        - `lc models pull` - Download new models
+        - `lc models remove` - Remove models
+        - `lc models show` - Model details
     </Card>
 
-    <Card title="Configuration" icon="cog">
-        View and manage configuration
-        - `lc config show`
-        - `lc config validate`
-        - `lc component add`
+    <Card title="Database Tools" icon="database">
+        Database management utilities
+        - `lc mongo` - MongoDB shell access
+        - `lc postgres` - PostgreSQL shell (psql)
+        - `lc redis` - Redis CLI access
+    </Card>
+
+    <Card title="Networking" icon="globe">
+        Expose services publicly
+        - `lc tunnel` - Create secure tunnels
+        - `lc tunnel list` - Show active tunnels
+        - `lc tunnel stop` - Stop tunnels
+    </Card>
+
+    <Card title="Components" icon="puzzle">
+        Add or remove service components
+        - `lc component add` - Add new services
+        - `lc component remove` - Remove services
+        - `lc component list` - Show components
     </Card>
 </CardGroup>
 
@@ -252,31 +270,31 @@ LocalCloud respects these environment variables:
 
 <CardGroup cols={2}>
     <Card
-        title="Project Commands"
-        icon="folder"
+        title="Project Setup"
+        icon="rocket"
         href="/cli/setup"
     >
-        Learn about project setup
+        Initialize your first project
     </Card>
     <Card
-        title="Service Commands"
+        title="Service Management"
         icon="server"
         href="/cli/start"
     >
-        Master service management
+        Learn to control services
     </Card>
     <Card
-        title="Model Commands"
+        title="Model Management"
         icon="robot"
         href="/cli/models"
     >
-        Explore AI model management
+        Work with AI models
     </Card>
     <Card
-        title="Configuration"
-        icon="cog"
-        href="/cli/config"
+        title="Networking"
+        icon="globe"
+        href="/cli/tunnel"
     >
-        Configure your environment
+        Expose services with tunnels
     </Card>
 </CardGroup>

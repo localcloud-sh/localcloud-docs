@@ -1,0 +1,352 @@
+---
+title: 'MongoDB'
+description: 'NoSQL document database for flexible data storage'
+icon: 'leaf'
+---
+
+# MongoDB
+
+MongoDB is a NoSQL document database that provides flexible, schema-free data storage. LocalCloud includes MongoDB 7.0 with authentication and management tools.
+
+## Features
+
+- **Document Database**: Store data in flexible, JSON-like documents
+- **Indexing**: Single field, compound, and text indices
+- **Aggregation**: Powerful pipeline-based data processing
+- **Authentication**: Built-in security with localcloud credentials
+- **Admin Interface**: Web-based management via Mongo Express
+- **CLI Access**: Direct mongosh integration via `lc mongo connect`
+
+## Configuration
+
+MongoDB is configured in your `localcloud.yaml` file:
+
+```yaml
+services:
+  mongodb:
+    type: mongodb
+    version: "7.0"
+    port: 27017
+    replica_set: false
+    auth_enabled: true
+    databases:
+      - name: localcloud
+        collections:
+          - name: users
+            indices:
+              - field: email
+                unique: true
+          - name: documents
+            indices:
+              - fields: [title, content]
+                type: text
+```
+
+## Connection Details
+
+### Connection String
+```
+mongodb://localcloud:localcloud@localhost:27017/localcloud
+```
+
+### Connection Parameters
+- **Host**: `localhost`
+- **Port**: `27017`
+- **Username**: `localcloud`
+- **Password**: `localcloud`
+- **Database**: `localcloud`
+- **Authentication Database**: `admin`
+
+## CLI Commands
+
+### Connect to MongoDB Shell
+```bash
+# Open mongosh interactive shell
+lc mongo connect
+
+# Connect to specific database
+lc mongo connect --db myapp
+```
+
+### Database Operations
+```bash
+# List all databases
+lc mongo db list
+
+# Create a new database
+lc mongo db create myapp
+
+# Drop a database
+lc mongo db drop myapp
+
+# Get database stats
+lc mongo db stats myapp
+```
+
+### Collection Operations
+```bash
+# List collections in current database
+lc mongo collection list
+
+# Create a collection
+lc mongo collection create users
+
+# Drop a collection
+lc mongo collection drop users
+
+# Get collection stats
+lc mongo collection stats users
+```
+
+### Document Operations
+```bash
+# Insert a document
+lc mongo doc insert users '{"name": "John", "email": "john@example.com"}'
+
+# Find documents
+lc mongo doc find users '{"name": "John"}'
+
+# Update documents
+lc mongo doc update users '{"name": "John"}' '{"$set": {"age": 30}}'
+
+# Delete documents
+lc mongo doc delete users '{"name": "John"}'
+```
+
+### Index Management
+```bash
+# Create an index
+lc mongo index create users '{"email": 1}' --unique
+
+# List indices
+lc mongo index list users
+
+# Drop an index
+lc mongo index drop users email_1
+```
+
+## Usage Examples
+
+### Python with PyMongo
+```python
+from pymongo import MongoClient
+import os
+
+# Connect to MongoDB
+client = MongoClient('mongodb://localcloud:localcloud@localhost:27017/')
+db = client.localcloud
+
+# Insert a document
+users = db.users
+user_id = users.insert_one({
+    "name": "Alice",
+    "email": "alice@example.com",
+    "age": 28
+}).inserted_id
+
+# Find documents
+user = users.find_one({"name": "Alice"})
+print(user)
+
+# Update document
+users.update_one(
+    {"name": "Alice"},
+    {"$set": {"age": 29}}
+)
+
+# Delete document
+users.delete_one({"name": "Alice"})
+```
+
+### Node.js with MongoDB Driver
+```javascript
+const { MongoClient } = require('mongodb');
+
+async function main() {
+    const client = new MongoClient('mongodb://localcloud:localcloud@localhost:27017/');
+    
+    try {
+        await client.connect();
+        const db = client.db('localcloud');
+        const users = db.collection('users');
+        
+        // Insert document
+        await users.insertOne({
+            name: 'Bob',
+            email: 'bob@example.com',
+            age: 25
+        });
+        
+        // Find document
+        const user = await users.findOne({ name: 'Bob' });
+        console.log(user);
+        
+        // Update document
+        await users.updateOne(
+            { name: 'Bob' },
+            { $set: { age: 26 } }
+        );
+        
+        // Delete document
+        await users.deleteOne({ name: 'Bob' });
+        
+    } finally {
+        await client.close();
+    }
+}
+
+main();
+```
+
+### Go with MongoDB Driver
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+    "time"
+
+    "go.mongodb.org/mongo-driver/mongo"
+    "go.mongodb.org/mongo-driver/mongo/options"
+    "go.mongodb.org/mongo-driver/bson"
+)
+
+func main() {
+    client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://localcloud:localcloud@localhost:27017/"))
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer client.Disconnect(context.TODO())
+
+    collection := client.Database("localcloud").Collection("users")
+    
+    // Insert document
+    doc := bson.M{"name": "Charlie", "email": "charlie@example.com", "age": 32}
+    result, err := collection.InsertOne(context.TODO(), doc)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Inserted document with ID: %v\n", result.InsertedID)
+    
+    // Find document
+    var user bson.M
+    err = collection.FindOne(context.TODO(), bson.M{"name": "Charlie"}).Decode(&user)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("Found user: %+v\n", user)
+}
+```
+
+## Web Interface
+
+MongoDB includes Mongo Express for web-based administration:
+
+- **URL**: `http://localhost:8081`
+- **Username**: `admin`
+- **Password**: `admin`
+
+Features:
+- Browse databases and collections
+- View and edit documents
+- Manage indices
+- Execute queries
+- View collection statistics
+
+## Best Practices
+
+### Schema Design
+```javascript
+// User document with embedded address
+{
+    "_id": ObjectId("..."),
+    "name": "John Doe",
+    "email": "john@example.com",
+    "address": {
+        "street": "123 Main St",
+        "city": "Anytown",
+        "zipcode": "12345"
+    },
+    "tags": ["customer", "premium"],
+    "createdAt": ISODate("2024-01-01T00:00:00Z")
+}
+```
+
+### Indexing
+```javascript
+// Create compound index for common queries
+db.users.createIndex({ "email": 1, "status": 1 })
+
+// Create text index for search
+db.documents.createIndex({ "title": "text", "content": "text" })
+
+// Create TTL index for expiring documents
+db.sessions.createIndex({ "createdAt": 1 }, { expireAfterSeconds: 3600 })
+```
+
+### Aggregation Pipeline
+```javascript
+// Group users by city and count
+db.users.aggregate([
+    { $group: { _id: "$address.city", count: { $sum: 1 } } },
+    { $sort: { count: -1 } }
+])
+```
+
+## Common Patterns
+
+### Document Validation
+```javascript
+db.createCollection("users", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["name", "email"],
+            properties: {
+                name: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                email: {
+                    bsonType: "string",
+                    pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+                    description: "must be a valid email address"
+                }
+            }
+        }
+    }
+})
+```
+
+### Transactions
+```javascript
+const session = client.startSession();
+session.startTransaction();
+
+try {
+    await users.insertOne({ name: "Alice" }, { session });
+    await accounts.insertOne({ user: "Alice", balance: 100 }, { session });
+    
+    await session.commitTransaction();
+} catch (error) {
+    await session.abortTransaction();
+    throw error;
+} finally {
+    await session.endSession();
+}
+```
+
+## System Requirements
+
+- **Memory**: 1GB RAM minimum
+- **Storage**: 1GB disk space for data
+- **Network**: Port 27017 for MongoDB, 8081 for Mongo Express
+
+## Related Commands
+
+- [`lc mongo connect`](/cli/mongo) - Connect to MongoDB shell
+- [`lc logs mongodb`](/cli/logs) - View MongoDB logs
+- [`lc status`](/cli/status) - Check MongoDB status
+- [`lc stop mongodb`](/cli/stop) - Stop MongoDB service

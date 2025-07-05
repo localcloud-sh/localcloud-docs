@@ -1,0 +1,224 @@
+---
+title: 'AI Service (Ollama)'
+description: 'Run LLMs locally with Ollama integration'
+icon: 'robot'
+---
+
+# AI Service (Ollama)
+
+LocalCloud uses Ollama to run large language models locally. Ollama provides an OpenAI-compatible API, making it easy to integrate with existing applications.
+
+## Available Models
+
+LocalCloud includes several popular models by default:
+
+- **llama3.2** - Meta's latest Llama model (3B parameters)
+- **mistral** - Mistral AI's 7B model
+- **qwen2.5** - Alibaba's Qwen 2.5 model
+- **phi3** - Microsoft's lightweight model
+- **deepseek-coder** - Code-focused model
+
+<Note>
+    **Any Ollama Model Available**: You're not limited to the pre-configured models! You can use **any model available in the Ollama library** by typing the model name manually when prompted during setup or by pulling it later with `lc models pull <model-name>`.
+</Note>
+
+## Using Custom Models
+
+### During Setup
+
+When running `lc setup`, you can type any Ollama model name:
+
+```bash
+? Select AI model: 
+  llama3.2:3b
+  mistral:7b
+  qwen2.5:3b
+  phi3:3.8b
+  deepseek-coder:6.7b
+> Type custom model name...
+
+# Type any model name, for example:
+# - codellama:13b
+# - mixtral:8x7b
+# - neural-chat:7b
+# - starling-lm:7b
+```
+
+### After Setup
+
+Pull any Ollama model at any time:
+
+```bash
+# Pull a specific model
+lc models pull codellama:13b
+
+# Pull multiple models
+lc models pull mixtral:8x7b
+lc models pull starling-lm:7b
+
+# List all available models
+lc models list
+```
+
+## API Endpoints
+
+The Ollama service runs on `http://localhost:11434` with these endpoints:
+
+### Generate Text
+```bash
+curl http://localhost:11434/api/generate -d '{
+  "model": "llama3.2",
+  "prompt": "Why is the sky blue?",
+  "stream": false
+}'
+```
+
+### Chat Completion (OpenAI Compatible)
+```bash
+curl http://localhost:11434/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "llama3.2",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ]
+  }'
+```
+
+### List Models
+```bash
+curl http://localhost:11434/api/tags
+```
+
+## Using with Popular Libraries
+
+### OpenAI Python SDK
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="not-needed"  # Ollama doesn't require API keys
+)
+
+response = client.chat.completions.create(
+    model="llama3.2",  # or any model you've pulled
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain quantum computing"}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+### LangChain
+```python
+from langchain_community.llms import Ollama
+
+llm = Ollama(
+    model="mistral",  # or any model you've pulled
+    base_url="http://localhost:11434"
+)
+
+response = llm.invoke("What is machine learning?")
+print(response)
+```
+
+### Direct API Usage
+```javascript
+const response = await fetch('http://localhost:11434/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        model: 'qwen2.5',  // or any model you've pulled
+        prompt: 'Write a haiku about coding',
+        stream: false
+    })
+});
+
+const data = await response.json();
+console.log(data.response);
+```
+
+## Model Management
+
+### View Installed Models
+```bash
+# List all models
+lc models list
+
+# Show model details
+lc models show llama3.2
+```
+
+### Remove Models
+```bash
+# Remove a specific model
+lc models remove codellama:13b
+```
+
+### Model Storage
+Models are stored in Docker volumes and persist between restarts. Storage location:
+- Volume: `localcloud_ollama_data`
+- Typical size: 3-50GB per model depending on parameters
+
+## Performance Tips
+
+1. **Start with smaller models** if you have limited resources:
+   - `qwen2.5:3b` - Fast and efficient
+   - `phi3:3.8b` - Great for basic tasks
+   - `llama3.2:3b` - Good balance of speed and capability
+
+2. **For better performance**, use models that fit in your available RAM:
+   - 8GB RAM: Use 3B-7B parameter models
+   - 16GB RAM: Can handle 7B-13B models comfortably
+   - 32GB+ RAM: Can run larger models like 20B+
+
+3. **GPU Acceleration**: If you have a compatible GPU, Ollama will automatically use it for faster inference.
+
+## Troubleshooting
+
+### Model Download Issues
+If model downloads fail:
+```bash
+# Retry the download
+lc models pull <model-name>
+
+# Check Ollama logs
+lc logs ai
+```
+
+### Out of Memory
+If you get memory errors:
+1. Try a smaller model
+2. Close other applications
+3. Increase Docker memory allocation
+
+### Slow Response Times
+- Use smaller models for faster responses
+- Ensure no other heavy processes are running
+- Consider upgrading your hardware
+
+## Popular Model Recommendations
+
+### For General Use
+- `llama3.2:3b` - Fast, good quality
+- `mistral:7b` - Excellent general purpose
+- `mixtral:8x7b` - High quality but requires more resources
+
+### For Coding
+- `deepseek-coder:6.7b` - Specialized for code
+- `codellama:7b` - Meta's code model
+- `qwen-coder:7b` - Good for multiple languages
+
+### For Creative Writing
+- `starling-lm:7b` - Good creative capabilities
+- `neural-chat:7b` - Conversational focus
+
+### For Limited Resources
+- `phi3:3.8b` - Microsoft's efficient model
+- `qwen2.5:3b` - Fast and capable
+- `tinyllama:1.1b` - Ultra-light option
+
+Remember: You can experiment with any model from the [Ollama library](https://ollama.com/library) - just use the model name when setting up or pulling models!

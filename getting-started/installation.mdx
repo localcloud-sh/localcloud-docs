@@ -21,7 +21,7 @@ LocalCloud can be installed on macOS, Linux, and Windows (via WSL2). The install
         - macOS 12 (Monterey) or later
         - 8GB RAM minimum (16GB recommended)
         - 20GB free disk space
-        - Docker Desktop or OrbStack
+        - Docker Desktop
     </Tab>
     <Tab title="Linux">
         - Ubuntu 20.04+, Debian 11+, Fedora 35+
@@ -41,9 +41,20 @@ LocalCloud can be installed on macOS, Linux, and Windows (via WSL2). The install
 
 The fastest way to install LocalCloud:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh | bash
-```
+<Tabs>
+    <Tab title="macOS/Linux with Homebrew">
+        ```bash
+        # Install using Homebrew
+        brew install localcloud-sh/tap/localcloud
+        ```
+    </Tab>
+    <Tab title="Install Script">
+        ```bash
+        # Universal install script
+        curl -fsSL https://localcloud.sh/install | bash
+        ```
+    </Tab>
+</Tabs>
 
 This script will:
 1. Detect your operating system
@@ -75,7 +86,7 @@ This script will:
         **Apple Silicon (M1/M2/M3)**:
         ```bash
         # Download and extract
-        curl -L https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-darwin-arm64.tar.gz | tar xz
+        curl -L https://localcloud.sh/releases/darwin-arm64 | tar xz
 
         # Install
         sudo install -m 755 localcloud-darwin-arm64 /usr/local/bin/localcloud
@@ -88,7 +99,7 @@ This script will:
         **Intel Mac**:
         ```bash
         # Download and extract
-        curl -L https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-darwin-amd64.tar.gz | tar xz
+        curl -L https://localcloud.sh/releases/darwin-amd64 | tar xz
 
         # Install
         sudo install -m 755 localcloud-darwin-amd64 /usr/local/bin/localcloud
@@ -116,7 +127,7 @@ This script will:
         **AMD64**:
         ```bash
         # Download and extract
-        curl -L https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-linux-amd64.tar.gz | tar xz
+        curl -L https://localcloud.sh/releases/linux-amd64 | tar xz
 
         # Install
         sudo install -m 755 localcloud-linux-amd64 /usr/local/bin/localcloud
@@ -129,7 +140,7 @@ This script will:
         **ARM64**:
         ```bash
         # Download and extract
-        curl -L https://github.com/localcloud-sh/localcloud/releases/latest/download/localcloud-linux-arm64.tar.gz | tar xz
+        curl -L https://localcloud.sh/releases/linux-arm64 | tar xz
 
         # Install
         sudo install -m 755 localcloud-linux-arm64 /usr/local/bin/localcloud
@@ -160,7 +171,7 @@ This script will:
     <Step title="Install LocalCloud in WSL">
         Open WSL terminal and run:
         ```bash
-        curl -fsSL https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh | bash
+        curl -fsSL https://localcloud.sh/install | bash
         ```
     </Step>
 </Steps>
@@ -171,22 +182,13 @@ LocalCloud requires Docker to run services. If you don't have Docker installed:
 
 ### macOS
 
-<CardGroup cols={2}>
-    <Card
-        title="Docker Desktop"
-        icon="docker"
-        href="https://www.docker.com/products/docker-desktop/"
-    >
-        Official Docker application for macOS
-    </Card>
-    <Card
-        title="OrbStack"
-        icon="circle"
-        href="https://orbstack.dev"
-    >
-        Lightweight Docker alternative (recommended)
-    </Card>
-</CardGroup>
+<Card
+    title="Docker Desktop"
+    icon="docker"
+    href="https://www.docker.com/products/docker-desktop/"
+>
+    Official Docker application for macOS
+</Card>
 
 ### Linux
 
@@ -267,7 +269,7 @@ Enable tab completion for your shell:
 
         ```bash
         # Install to home directory
-        curl -fsSL https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh | bash -s -- --prefix=$HOME/.local
+        curl -fsSL https://localcloud.sh/install | bash -s -- --prefix=$HOME/.local
 
         # Add to PATH
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
@@ -277,7 +279,7 @@ Enable tab completion for your shell:
 
     <Accordion title="Docker not found">
         LocalCloud requires Docker. Install it using:
-        - **macOS**: [Docker Desktop](https://www.docker.com/products/docker-desktop/) or [OrbStack](https://orbstack.dev)
+        - **macOS**: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
         - **Linux**: `curl -fsSL https://get.docker.com | sudo bash`
         - **Windows**: [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
     </Accordion>
@@ -305,10 +307,10 @@ To update to the latest version:
 brew upgrade localcloud
 
 # Using the installer script
-curl -fsSL https://raw.githubusercontent.com/localcloud-sh/localcloud/main/scripts/install.sh | bash
+curl -fsSL https://localcloud.sh/install | bash
 
 # Or download the latest release directly from:
-# https://github.com/localcloud-sh/localcloud/releases/latest
+# https://localcloud.sh/releases
 ```
 
 ## Uninstalling

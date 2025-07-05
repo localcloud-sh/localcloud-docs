@@ -31,25 +31,89 @@
           {
             "group": "Using Services",
             "pages": [
-              "services/ollama",
-              "services/postgresql",
-              "services/mongodb",
-              "services/redis",
-              "services/minio"
+              {
+                "title": "AI Service (Ollama)",
+                "href": "services/ollama"
+              },
+              {
+                "title": "PostgreSQL",
+                "href": "services/postgresql"
+              },
+              {
+                "title": "MongoDB",
+                "href": "services/mongodb"
+              },
+              {
+                "title": "Redis",
+                "href": "services/redis"
+              },
+              {
+                "title": "MinIO",
+                "href": "services/minio"
+              }
+            ]
+          },
+          {
+            "group": "CLI Commands",
+            "pages": [
+              {
+                "title": "Overview",
+                "href": "cli/overview"
+              },
+              {
+                "title": "Setup",
+                "href": "cli/setup"
+              },
+              {
+                "title": "Start/Stop",
+                "href": "cli/start"
+              },
+              {
+                "title": "Status",
+                "href": "cli/status"
+              },
+              {
+                "title": "Logs",
+                "href": "cli/logs"
+              },
+              {
+                "title": "Models",
+                "href": "cli/models"
+              },
+              {
+                "title": "Tunnel",
+                "href": "cli/tunnel"
+              },
+              {
+                "title": "MongoDB",
+                "href": "cli/mongo"
+              }
             ]
           },
           {
             "group": "Configuration",
             "pages": [
-              "configuration/config-yaml",
-              "configuration/environment"
+              {
+                "title": "Config YAML",
+                "href": "configuration/config-yaml"
+              },
+              {
+                "title": "Environment Variables",
+                "href": "configuration/environment"
+              }
             ]
           },
           {
             "group": "Troubleshooting",
             "pages": [
-              "troubleshooting/common-issues",
-              "troubleshooting/faq"
+              {
+                "title": "Common Issues",
+                "href": "troubleshooting/common-issues"
+              },
+              {
+                "title": "FAQ",
+                "href": "troubleshooting/faq"
+              }
             ]
           }
         ]
@@ -137,11 +201,6 @@
           "icon": "book-open-cover"
         },
         {
-          "anchor": "Community",
-          "href": "https://discord.gg/localcloud",
-          "icon": "discord"
-        },
-        {
           "anchor": "GitHub",
           "href": "https://github.com/localcloud-sh/localcloud",
           "icon": "github"
@@ -169,7 +228,6 @@
   "footer": {
     "socials": {
       "github": "https://github.com/localcloud-sh/localcloud",
-      "discord": "https://discord.gg/localcloud"
     }
   }
 }
