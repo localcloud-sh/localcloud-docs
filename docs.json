@@ -47,12 +47,11 @@
               "cli/setup",
               "cli/start",
               "cli/status",
+              "cli/tunnel",
+              "cli/export",
               "cli/logs",
               "cli/models",
-              "cli/tunnel",
-              "cli/component",
-              "cli/database",
-              "cli/export"
+              "cli/component"
             ]
           },
           {
