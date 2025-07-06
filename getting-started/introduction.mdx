@@ -6,10 +6,10 @@ icon: 'house'
 
 # Welcome to LocalCloud
 
-LocalCloud is an open-source, local-first AI development platform that eliminates cloud costs during development. Run AI models, databases, storage, and compute services entirely on your machine with a single command.
+LocalCloud is an open-source, local-first AI development platform that eliminates cloud costs during development. Run developer-friendly PostgreSQL, MongoDB, vector databases, AI models, Redis cache, job queues, and S3-like storage instantly on your machine.
 
 <Note>
-    LocalCloud lets you develop AI applications locally with the same services you'd use in the cloud, but at **zero cost**.
+    LocalCloud lets you develop AI applications locally with the same services you'd use in the cloud, but at **zero cost**. Perfect for AI-assisted development with Claude Code, Cursor, and Gemini CLI.
 </Note>
 
 ## What is LocalCloud?
@@ -37,7 +37,7 @@ LocalCloud orchestrates popular open-source tools into a cohesive platform that 
         icon="rocket"
         color="#3b82f6"
     >
-        Get started with `lc setup` - all services configured automatically
+        Interactive setup or AI assistant friendly: `lc setup my-app --preset=ai-dev --yes`
     </Card>
     <Card
         title="Production Compatible"
@@ -101,10 +101,12 @@ When developing AI applications in the cloud, costs quickly escalate:
     <Accordion title="Developer Experience" icon="code">
         Built for productivity:
         - Single command to start all services
+        - Interactive wizard for humans
+        - Non-interactive setup for AI assistants
         - Automatic port management
         - Service health monitoring
         - Integrated logging
-        - Interactive setup wizard
+        - Auto-generated CLAUDE.md guidance files
     </Accordion>
 
     <Accordion title="Platform Agnostic" icon="globe">
@@ -167,25 +169,42 @@ LocalCloud is perfect for:
 
 Here's how easy it is to get started:
 
-```bash
-# Install LocalCloud (macOS with Homebrew)
-brew install localcloud-sh/tap/localcloud
+<Tabs>
+    <Tab title="Interactive Setup">
+        ```bash
+        # Install LocalCloud
+        curl -fsSL https://localcloud.sh/install | bash
 
-# Or use the install script
-curl -fsSL https://localcloud.sh/install | bash
+        # Interactive wizard
+        lc setup
+        # Choose your components and models
 
-# Initialize a new project
-lc setup my-ai-app
+        # Start all services
+        lc start
 
-# Start all services
-lc start
+        # Your services are now running!
+        # AI API: http://localhost:11434
+        # PostgreSQL: localhost:5432
+        # Redis: localhost:6379
+        # MinIO: http://localhost:9000
+        ```
+    </Tab>
+    
+    <Tab title="AI Assistant Setup">
+        ```bash
+        # Install LocalCloud
+        curl -fsSL https://localcloud.sh/install | bash
 
-# Your services are now running!
-# AI API: http://localhost:11434
-# PostgreSQL: localhost:5432
-# Redis: localhost:6379
-# MinIO: http://localhost:9000
-```
+        # One-command setup for AI assistants
+        lc setup my-ai-app --preset=ai-dev --yes
+        cd my-ai-app
+        lc start
+
+        # Perfect for Claude Code, Cursor, Gemini CLI
+        # Auto-generates CLAUDE.md with guidance
+        ```
+    </Tab>
+</Tabs>
 
 ## Next Steps
 

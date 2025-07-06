@@ -1,62 +1,84 @@
 ---
 title: 'lc setup'
-description: 'Configure project or create from template'
+description: 'Initialize and configure LocalCloud projects interactively or non-interactively'
 icon: 'wand-magic-sparkles'
 ---
 
 # lc setup
 
-Configure your LocalCloud project interactively or create a new project from a template.
+Initialize and configure LocalCloud projects. Supports both interactive setup for humans and non-interactive setup perfect for AI coding assistants.
 
 ## Usage
 
 ```bash
-lc setup [template] [flags]
+lc setup [project-name] [flags]
 ```
 
 ## Arguments
 
-- `template` (optional) - Template name to create project from
+- `project-name` (optional) - Name for new project directory
 
 ## Flags
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--name` | Project name (for template creation) | template name |
-| `--force` | Overwrite existing directory | `false` |
+| `--add` | Components to add to existing project | |
+| `--remove` | Components to remove from existing project | |
+| `--components` | Components to configure (llm,database,cache,storage,etc) | |
+| `--models` | AI models to download (llama3.2:3b,nomic-embed-text) | |
+| `--preset` | Preset configuration (ai-dev,full-stack,minimal) | |
+| `-y, --yes` | Accept all defaults (non-interactive mode) | `false` |
 
 ## Modes
 
-### 1. Interactive Configuration (No Arguments)
+### 1. Interactive Setup (Human Developers)
 
-When run without arguments in an existing project:
+For human developers who want to choose components step by step:
 
 ```bash
+# Setup in current directory
 lc setup
+
+# Create new project with wizard
+lc setup my-ai-app
 ```
 
-This launches the same interactive wizard as `lc init --interactive`, allowing you to:
-- Select project type
-- Choose components (Database, Vector Database, Cache, Storage)
-- Pick AI models
+This launches an interactive wizard allowing you to:
+- Select project type (Chat Assistant, RAG System, Custom)
+- Choose components (AI, Database, Vector Search, Cache, Storage, etc.)
+- Pick AI models based on your hardware
 - Configure services
 
-<Note>
-    Vector Database is presented as a separate option in the setup wizard, but uses the same PostgreSQL instance with pgvector extension for optimal performance.
-</Note>
+You'll see a beautiful component selection interface:
+```
+? Select components you need: (Press <space> to select, <enter> to confirm)
+❯ ◯ [AI] LLM (Text generation)
+  ◯ [AI] Embeddings (Semantic search)
+  ◯ [Database] Database (PostgreSQL)
+  ◯ [Database] Vector Search (pgvector)
+  ◯ [Infrastructure] Cache (Redis)
+  ◯ [Infrastructure] Storage (MinIO)
+```
 
-<Note>
-    The project must already be initialized with `lc init` before running `lc setup` without arguments.
-</Note>
+### 2. Non-Interactive Setup (AI Assistants)
 
-### 2. Template Creation (With Template Name)
-
-Create a new project from a template:
+Perfect for AI coding assistants like Claude Code, Cursor, Gemini CLI:
 
 ```bash
-lc setup chat
-lc setup api-only --name my-api --port 8080
+# Quick presets
+lc setup my-ai-app --preset=ai-dev --yes
+lc setup my-app --preset=full-stack --yes
+lc setup simple --preset=minimal --yes
+
+# Custom configuration
+lc setup my-app --components=llm,database,storage --models=llama3.2:3b --yes
 ```
+
+Benefits for AI assistants:
+- ✅ No interactive prompts (no arrow keys/space bar needed)
+- ✅ Predictable command structure
+- ✅ Auto-generates `CLAUDE.md` guidance file
+- ✅ Clear preset options
 
 ## Available Templates
 

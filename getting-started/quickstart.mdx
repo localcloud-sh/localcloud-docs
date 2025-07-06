@@ -14,44 +14,111 @@ Get your first LocalCloud project running in 5 minutes. We'll create a simple AI
 
 ## Create Your First Project
 
-<Steps>
-    <Step title="Initialize the project">
+Choose your preferred setup method:
+
+<Tabs>
+    <Tab title="👨‍💻 Interactive Setup">
+        Perfect for human developers who want to choose components step by step.
+        
+        <Steps>
+            <Step title="Create project directory">
+                ```bash
+                mkdir my-ai-app
+                cd my-ai-app
+                ```
+            </Step>
+
+            <Step title="Run interactive setup">
+                ```bash
+                lc setup
+                ```
+
+                You'll see a beautiful wizard:
+                ```
+                ? What would you like to build? (Use arrow keys)
+                ❯ Chat Assistant - Conversational AI with memory
+                  RAG System - Document Q&A with vector search  
+                  Custom - Select components manually
+                ```
+
+                Then select services:
+                - **AI Model**: Choose a model (e.g., `llama3.2:3b`, `mistral`)
+                - **Database**: PostgreSQL for data storage
+                - **Vector Search**: pgvector for similarity search
+                - **Cache**: Redis for performance
+                - **Storage**: MinIO for file storage
+            </Step>
+
+            <Step title="Start services">
+                ```bash
+                lc start
+                ```
+
+                LocalCloud will:
+                - Download required Docker images
+                - Start all services
+                - Configure networking
+                - Show connection details
+            </Step>
+        </Steps>
+    </Tab>
+
+    <Tab title="🤖 AI Assistant Setup">
+        Perfect for AI coding assistants like Claude Code, Cursor, Gemini CLI.
+        
+        <Steps>
+            <Step title="One-command setup">
+                ```bash
+                # Quick AI development stack
+                lc setup my-ai-app --preset=ai-dev --yes
+                cd my-ai-app
+                ```
+
+                This automatically configures:
+                - AI models via Ollama
+                - PostgreSQL database
+                - Vector search with pgvector
+                - Auto-generated CLAUDE.md file
+            </Step>
+
+            <Step title="Start services">
+                ```bash
+                lc start
+                ```
+
+                Everything starts automatically - no user interaction needed!
+            </Step>
+
+            <Step title="Check the generated guidance">
+                ```bash
+                cat CLAUDE.md
+                ```
+
+                Your project now has complete AI assistant guidance with:
+                - All available commands
+                - Connection details
+                - Development workflows
+                - Export instructions
+            </Step>
+        </Steps>
+
+        ### Available Presets
+
         ```bash
-        # Create a new directory and initialize
-        mkdir my-ai-app
-        cd my-ai-app
-        lc setup
+        # AI development stack
+        lc setup my-ai-app --preset=ai-dev --yes
+
+        # Full infrastructure stack
+        lc setup my-app --preset=full-stack --yes
+
+        # Minimal AI-only setup
+        lc setup simple-ai --preset=minimal --yes
+
+        # Custom components
+        lc setup my-app --components=llm,database,storage --models=llama3.2:3b --yes
         ```
-
-        This creates a `.localcloud` directory with your project configuration.
-    </Step>
-
-    <Step title="Configure services">
-        ```bash
-        # Run interactive setup
-        lc setup
-        ```
-
-        Select the services you want:
-        - **AI Model**: Choose a model (e.g., `llama2`, `mistral`, `qwen2.5`)
-        - **Database**: PostgreSQL for data storage
-        - **Cache**: Redis for performance
-        - **Storage**: MinIO for file storage
-    </Step>
-
-    <Step title="Start services">
-        ```bash
-        # Start all configured services
-        lc start
-        ```
-
-        LocalCloud will:
-        - Download required Docker images
-        - Start all services
-        - Configure networking
-        - Show connection details
-    </Step>
-</Steps>
+    </Tab>
+</Tabs>
 
 ## Verify Everything is Running
 
