@@ -50,18 +50,9 @@
               "cli/logs",
               "cli/models",
               "cli/tunnel",
-              "cli/mongo",
               "cli/component",
               "cli/database",
-              "cli/vector",
               "cli/export"
-            ]
-          },
-          {
-            "group": "Configuration",
-            "pages": [
-              "configuration/config-yaml",
-              "configuration/environment"
             ]
           },
           {
